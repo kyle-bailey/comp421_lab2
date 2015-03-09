@@ -50,7 +50,7 @@ CFLAGS = -g -Wall
 LANG = gcc
 
 %: %.o
-  $(LINK.o) -o $@ $^ $(LOADLIBES) $(LDLIBS)
+	$(LINK.o) -o $@ $^ $(LOADLIBES) $(LDLIBS)
 
 LINK.o = $(PUBLIC_DIR)/bin/link-user-$(LANG) $(LDFLAGS) $(TARGET_ARCH)
 
@@ -61,12 +61,12 @@ LINK.o = $(PUBLIC_DIR)/bin/link-user-$(LANG) $(LDFLAGS) $(TARGET_ARCH)
 all: $(ALL)
 
 yalnix: $(KERNEL_OBJS)
-  $(PUBLIC_DIR)/bin/link-kernel-$(LANG) -o yalnix $(KERNEL_OBJS)
+	$(PUBLIC_DIR)/bin/link-kernel-$(LANG) -o yalnix $(KERNEL_OBJS)
 
 clean:
-  rm -f $(KERNEL_OBJS) $(ALL)
+	rm -f $(KERNEL_OBJS) $(ALL)
 
 depend:
-  $(CC) $(CPPFLAGS) -M $(KERNEL_SRCS) > .depend
+	$(CC) $(CPPFLAGS) -M $(KERNEL_SRCS) > .depend
 
 #include .depend
