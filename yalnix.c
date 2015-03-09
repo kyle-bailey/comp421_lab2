@@ -1,7 +1,8 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
 #include <stdlib.h>
-#include "trap_handlers.c"
+#include <string.h>
+#include "trap_handlers.h"
 
 void occupy_pages_up_to(void *end);
 
@@ -38,25 +39,25 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   for(i = 0; i < TRAP_VECTOR_SIZE; i++){
     switch(i){
       case TRAP_KERNEL:
-        interrupt_vector_table[i] = &yalnix_kernel_trap_handler;
+        interrupt_vector_table[i] = &kernel_trap_handler;
         break;
       case TRAP_CLOCK:
-        interrupt_vector_table[i] = &yalnix_clock_trap_handler;
+        interrupt_vector_table[i] = &clock_trap_handler;
         break;
       case TRAP_ILLEGAL:
-        interrupt_vector_table[i] = &yalnix_illegal_trap_handler;
+        interrupt_vector_table[i] = &illegal_trap_handler;
         break;
       case TRAP_MEMORY:
-        interrupt_vector_table[i] = &yalnix_memory_trap_handler;
+        interrupt_vector_table[i] = &memory_trap_handler;
         break;
       case TRAP_MATH:
-        interrupt_vector_table[i] = &yalnix_math_trap_handler;
+        interrupt_vector_table[i] = &math_trap_handler;
         break;
       case TRAP_TTY_RECEIVE:
-        interrupt_vector_table[i] = &yalnix_tty_recieve_trap_handler;
+        interrupt_vector_table[i] = &tty_recieve_trap_handler;
         break;
       case TRAP_TTY_TRANSMIT:
-        interrupt_vector_table[i] = &yalnix_tty_transmit_trap_handler;
+        interrupt_vector_table[i] = &tty_transmit_trap_handler;
         break;
       default:
         interrupt_vector_table[i] = NULL;
