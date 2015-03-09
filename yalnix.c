@@ -10,7 +10,7 @@ void occupy_pages_up_to(void *end);
 //int array that keeps track of what pages are free (0 means free, 1 means not free)
 int *is_page_free;
 int virt_mem_initialized = 0;
-void *kernel_brk = PMEM_BASE;
+void *kernel_brk = VMEM_1_BASE;
 void **interrupt_vector_table;
 
 int SetKernelBrk(void *addr) {
