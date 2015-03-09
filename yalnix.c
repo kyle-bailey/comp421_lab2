@@ -1,12 +1,13 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
+#include "trap_handlers.c"
 
 //int array that keeps track of what pages are free (0 means free, 1 means not free)
 int *is_page_free;
 void *kernel_brk = PMEM_BASE;
 void *interrupt_vector_table;
 
-int 
+int
 SetKernelBrk(void *addr) {
   if(virt_mem_initialized){
     //more complicated stuff
@@ -14,10 +15,12 @@ SetKernelBrk(void *addr) {
       occupy_pages_up_to(addr);
     }
   }
+
+  return 0;
 }
 
-void 
-KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args){
+void
+KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
 
   int i;
 

@@ -1,3 +1,6 @@
+#include <comp421/hardware.h>
+#include <comp421/yalnix.h>
+
 void kernel_trap_handler (ExceptionStackFrame *frame) {
 
 }
