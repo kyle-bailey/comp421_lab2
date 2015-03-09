@@ -4,7 +4,7 @@
 #include <string.h>
 #include "trap_handlers.h"
 
-void occupy_pages_up_to(void *end);
+void occupy_kernel_pages_up_to(void *end);
 
 
 //int array that keeps track of what pages are free (0 means free, 1 means not free)
@@ -17,7 +17,12 @@ int SetKernelBrk(void *addr) {
   if(virt_mem_initialized) {
     //more complicated stuff
   } else {
-      occupy_pages_up_to(addr);
+    // SetKernelBrk should never be freeing a page we have already allocated.
+    if ((long)addr <= (long)kernel_brk - PAGESIZE) {
+      return -1;
+    }
+
+    occupy_kernel_pages_up_to(addr);
   }
 
   return 0;
@@ -32,7 +37,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   memset(is_page_free,0,sizeof(is_page_free));
 
   // Set all pages from PMEM_BASE up to orig_break as in use
-  occupy_pages_up_to(orig_brk);
+  occupy_kernel_pages_up_to(orig_brk);
 
   //initalize the interrupt vector table
   interrupt_vector_table = malloc(TRAP_VECTOR_SIZE * sizeof(void *));
@@ -69,7 +74,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 }
 
 void
-occupy_pages_up_to(void *end) {
+occupy_kernel_pages_up_to(void *end) {
   int i;
 
   int boundary = (UP_TO_PAGE(end) - (long)kernel_brk/PAGESIZE);
