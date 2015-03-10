@@ -12,6 +12,7 @@ int *is_page_free;
 int virt_mem_initialized = 0;
 void *kernel_brk = VMEM_1_BASE;
 void **interrupt_vector_table;
+struct pte *kernel_page_table;
 
 int SetKernelBrk(void *addr) {
   if(virt_mem_initialized) {
@@ -21,7 +22,6 @@ int SetKernelBrk(void *addr) {
     if ((long)addr <= (long)kernel_brk - PAGESIZE) {
       return -1;
     }
-
     occupy_kernel_pages_up_to(addr);
   }
 
@@ -69,7 +69,38 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     }
   }
 
+  //Initialize REG_VECTOR_BASE privileged machine register to point to table
   WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)&interrupt_vector_table);
+
+  //Page Table initialzation
+  int num_kernel_pages = ((long)VMEM_1_LIMIT - (long)VMEM_1_BASE)/PAGESIZE;
+  kernel_page_table = malloc(num_kernel_pages * sizeof(struct pte));
+
+  int end_of_text = ((long)&_extext - (long)VMEM_1_BASE) / PAGESIZE;
+  int end_of_heap = ((long)orig_brk - (long)VMEM_1_BASE) / PAGESIZE;
+
+  for(i = 0; i < num_kernel_pages; i++){
+    if(i < end_of_text){
+      kernel_page_table[i].valid = 1;
+      kernel_page_table[i].kprot.PROT_READ = 1;
+      kernel_page_table[i].kprot.PROT_WRITE = 0;
+      kernel_page_table[i].kprot.PROT_EXEC = 1;
+    } else if( i < end_of_heap) {
+      kernel_page_table[i].valid = 1;
+      kernel_page_table[i].kprot.PROT_READ = 1;
+      kernel_page_table[i].kprot.PROT_WRITE = 1;
+      kernel_page_table[i].kprot.PROT_EXEC = 0;
+    } else {
+      kernel_page_table[i].valid = 0;
+      kernel_page_table[i].kprot.PROT_READ = 1;
+      kernel_page_table[i].kprot.PROT_WRITE = 1;
+      kernel_page_table[i].kprot.PROT_EXEC = 0;
+    }
+    kernel_page_table[i].uprot.PROT_READ = 0;
+    kernel_page_table[i].uprot.PROT_WRITE = 0;
+    kernel_page_table[i].uprot.PROT_EXEC = 0;
+    kernel_page_table[i].uprot.pfn = i;
+  }
 
 }
 
@@ -77,7 +108,7 @@ void
 occupy_kernel_pages_up_to(void *end) {
   int i;
 
-  int boundary = (UP_TO_PAGE(end) - (long)kernel_brk/PAGESIZE);
+  int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
   for(i = 0; i < boundary; i++){
     is_page_free[i] = 1;
   }
