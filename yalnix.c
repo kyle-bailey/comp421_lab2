@@ -11,9 +11,10 @@ void occupy_kernel_pages_up_to(void *end);
 //int array that keeps track of what pages are free (0 means free, 1 means not free)
 int *is_page_free;
 int virt_mem_initialized = 0;
-void *kernel_brk = VMEM_1_BASE;
+void *kernel_brk = (void *)VMEM_1_BASE;
 void **interrupt_vector_table;
 struct pte *kernel_page_table;
+struct pte *user_page_table;
 
 int SetKernelBrk(void *addr) {
   if(virt_mem_initialized) {
@@ -83,36 +84,26 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   for(i = 0; i < num_kernel_pages; i++){
     if(i < end_of_text){
       kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot.PROT_READ = 1;
-      kernel_page_table[i].kprot.PROT_WRITE = 0;
-      kernel_page_table[i].kprot.PROT_EXEC = 1;
+      kernel_page_table[i].kprot = 5; // 101
     } else if( i < end_of_heap) {
       kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot.PROT_READ = 1;
-      kernel_page_table[i].kprot.PROT_WRITE = 1;
-      kernel_page_table[i].kprot.PROT_EXEC = 0;
+      kernel_page_table[i].kprot = 6; // 110
     } else {
       kernel_page_table[i].valid = 0;
-      kernel_page_table[i].kprot.PROT_READ = 1;
-      kernel_page_table[i].kprot.PROT_WRITE = 1;
-      kernel_page_table[i].kprot.PROT_EXEC = 0;
+      kernel_page_table[i].kprot = 6; // 110
     }
-    kernel_page_table[i].uprot.PROT_READ = 0;
-    kernel_page_table[i].uprot.PROT_WRITE = 0;
-    kernel_page_table[i].uprot.PROT_EXEC = 0;
-    kernel_page_table[i].uprot.pfn = i;
+    kernel_page_table[i].uprot = 0; // 000
+    kernel_page_table[i].pfn = i;
   }
 
   //Region 0 Page Table Initilization
-  int num_users_pages = ((long)VMEM_0_LIMIT - (long)VMEM_0_BASE)/PAGESIZE;
+  int num_user_pages = ((long)VMEM_0_LIMIT - (long)VMEM_0_BASE)/PAGESIZE;
   user_page_table = malloc(num_user_pages * sizeof(struct pte));
 
   for(i = 0; i < num_user_pages; i++){
     user_page_table[i].valid = 0;
-    user_page_table[i].kprot.PROT_READ = 0;
-    user_page_table[i].kprot.PROT_WRITE = 0;
-    user_page_table[i].kprot.PROT_EXEC = 0;
-    user_page_table[i].uprot.pfn = i;
+    user_page_table[i].kprot = 0; // 000
+    user_page_table[i].pfn = i;
   }
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
@@ -120,7 +111,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   WriteRegister(REG_PTR1, (RCS421RegVal)&kernel_page_table);
 
   //Enable virtual memory
-  WriteRegister(REG_VM_ENABLE, 1;
+  WriteRegister(REG_VM_ENABLE, 1);
 
 }
 
