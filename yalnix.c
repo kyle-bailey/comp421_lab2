@@ -91,12 +91,12 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     if(i < end_of_text){
       kernel_page_table[i].valid = 1;
       kernel_page_table[i].kprot = 5; // 101
-    } else if(i < end_of_heap) {
+    } else if(i <= end_of_heap) {
       kernel_page_table[i].valid = 1;
       kernel_page_table[i].kprot = 3; // 110
     } else {
       kernel_page_table[i].valid = 0;
-      kernel_page_table[i].kprot = 6; // 110
+      kernel_page_table[i].kprot = 3; // 110
     }
     kernel_page_table[i].uprot = 0; // 000
     kernel_page_table[i].pfn = i + (long)VMEM_1_BASE/PAGESIZE;
