@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "trap_handlers.h"
+#include "process_control_block.h"
 
 void occupy_kernel_pages_up_to(void *end);
 
@@ -72,11 +73,11 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //Initialize REG_VECTOR_BASE privileged machine register to point to table
   WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)&interrupt_vector_table);
 
-  //Page Table initialzation
+  //Kernel Page Table initialzation
   int num_kernel_pages = ((long)VMEM_1_LIMIT - (long)VMEM_1_BASE)/PAGESIZE;
   kernel_page_table = malloc(num_kernel_pages * sizeof(struct pte));
 
-  int end_of_text = ((long)&_extext - (long)VMEM_1_BASE) / PAGESIZE;
+  int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
   int end_of_heap = ((long)orig_brk - (long)VMEM_1_BASE) / PAGESIZE;
 
   for(i = 0; i < num_kernel_pages; i++){
@@ -101,6 +102,25 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     kernel_page_table[i].uprot.PROT_EXEC = 0;
     kernel_page_table[i].uprot.pfn = i;
   }
+
+  //Region 0 Page Table Initilization
+  int num_users_pages = ((long)VMEM_0_LIMIT - (long)VMEM_0_BASE)/PAGESIZE;
+  user_page_table = malloc(num_user_pages * sizeof(struct pte));
+
+  for(i = 0; i < num_user_pages; i++){
+    user_page_table[i].valid = 0;
+    user_page_table[i].kprot.PROT_READ = 0;
+    user_page_table[i].kprot.PROT_WRITE = 0;
+    user_page_table[i].kprot.PROT_EXEC = 0;
+    user_page_table[i].uprot.pfn = i;
+  }
+
+  //Set PTR0 and PTR1 to point to physical address of starting pages
+  WriteRegister(REG_PTR0, (RCS421RegVal)&user_page_table);
+  WriteRegister(REG_PTR1, (RCS421RegVal)&kernel_page_table);
+
+  //Enable virtual memory
+  WriteRegister(REG_VM_ENABLE, 1;
 
 }
 
