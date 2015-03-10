@@ -10,9 +10,7 @@ void occupy_kernel_pages_up_to(void *end);
 
 
 //int array that keeps track of what pages are free (0 means free, 1 means occupied)
-int *is_page_occupied;
 int virt_mem_initialized = 0;
-void *kernel_brk = (void *)VMEM_1_BASE;
 void **interrupt_vector_table;
 struct pte *kernel_page_table;
 struct pte *user_page_table = NULL;

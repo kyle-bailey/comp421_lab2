@@ -1,3 +1,5 @@
+void *kernel_brk = (void *)VMEM_1_BASE;
+
 void
 occupy_kernel_pages_up_to(void *end) {
   if(is_page_occupied != NULL){
