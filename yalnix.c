@@ -107,7 +107,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   user_page_table = malloc(PAGE_TABLE_SIZE);
 
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
-    if (i >= 507) {
+    if (i >= KERNEL_STACK_BASE / PAGESIZE - 1) {
       user_page_table[i].valid = 1;
     } else {
       user_page_table[i].valid = 0;
