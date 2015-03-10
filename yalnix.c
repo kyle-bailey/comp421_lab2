@@ -84,7 +84,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   kernel_page_table = malloc(PAGE_TABLE_SIZE);
 
   int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
-  int end_of_heap = ((long)orig_brk - (long)VMEM_1_BASE) / PAGESIZE;
+  int end_of_heap = ((long)kernel_brk - (long)VMEM_1_BASE) / PAGESIZE;
 
   for(i = 0; i < PAGE_TABLE_LEN; i++){
     if(i < end_of_text){
