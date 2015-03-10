@@ -14,7 +14,7 @@ int virt_mem_initialized = 0;
 void *kernel_brk = (void *)VMEM_1_BASE;
 void **interrupt_vector_table;
 struct pte *kernel_page_table;
-struct pte *user_page_table;
+struct pte *user_page_table = NULL;
 
 int SetKernelBrk(void *addr) {
   if(virt_mem_initialized) {
@@ -31,15 +31,19 @@ int SetKernelBrk(void *addr) {
 }
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
+  TracePrintf(1, "KernelStart called.\n");
 
   int i;
 
   //initalize structure that keeps track of free pages
   is_page_free = malloc(pmem_size/PAGESIZE * sizeof(int));
-  memset(is_page_free,0,sizeof(is_page_free));
+
+  memset(is_page_free, 0, sizeof(is_page_free));
 
   // Set all pages from PMEM_BASE up to orig_break as in use
   occupy_kernel_pages_up_to(orig_brk);
+
+  TracePrintf(2, "Free pages structure initialized.\n");
 
   //initalize the interrupt vector table
   interrupt_vector_table = malloc(TRAP_VECTOR_SIZE * sizeof(void *));
@@ -74,18 +78,19 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //Initialize REG_VECTOR_BASE privileged machine register to point to table
   WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)&interrupt_vector_table);
 
+  TracePrintf(2, "Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
+
   //Kernel Page Table initialzation
-  int num_kernel_pages = ((long)VMEM_1_LIMIT - (long)VMEM_1_BASE)/PAGESIZE;
-  kernel_page_table = malloc(num_kernel_pages * sizeof(struct pte));
+  kernel_page_table = malloc(PAGE_TABLE_SIZE);
 
   int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
   int end_of_heap = ((long)orig_brk - (long)VMEM_1_BASE) / PAGESIZE;
 
-  for(i = 0; i < num_kernel_pages; i++){
+  for(i = 0; i < PAGE_TABLE_LEN; i++){
     if(i < end_of_text){
       kernel_page_table[i].valid = 1;
       kernel_page_table[i].kprot = 5; // 101
-    } else if( i < end_of_heap) {
+    } else if(i < end_of_heap) {
       kernel_page_table[i].valid = 1;
       kernel_page_table[i].kprot = 6; // 110
     } else {
@@ -96,23 +101,33 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     kernel_page_table[i].pfn = i;
   }
 
-  //Region 0 Page Table Initilization
-  int num_user_pages = ((long)VMEM_0_LIMIT - (long)VMEM_0_BASE)/PAGESIZE;
-  user_page_table = malloc(num_user_pages * sizeof(struct pte));
+  TracePrintf(2, "Kernel page table initialized.\n");
 
-  for(i = 0; i < num_user_pages; i++){
-    user_page_table[i].valid = 0;
+  //Region 0 Page Table Initilization
+  user_page_table = malloc(PAGE_TABLE_SIZE);
+
+  for(i = 0; i < PAGE_TABLE_LEN; i++) {
+    if (i >= 507) {
+      user_page_table[i].valid = 1;
+    } else {
+      user_page_table[i].valid = 0;
+    }
     user_page_table[i].kprot = 0; // 000
     user_page_table[i].pfn = i;
   }
+
+  TracePrintf(2, "User page table initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
   WriteRegister(REG_PTR0, (RCS421RegVal)&user_page_table);
   WriteRegister(REG_PTR1, (RCS421RegVal)&kernel_page_table);
 
+  TracePrintf(2, "Kernel and user page table pointers set.\n");
+
   //Enable virtual memory
   WriteRegister(REG_VM_ENABLE, 1);
 
+  TracePrintf(2, "Virtual memory enabled.\n");
 }
 
 void
@@ -121,7 +136,9 @@ occupy_kernel_pages_up_to(void *end) {
 
   int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
   for(i = 0; i < boundary; i++){
-    is_page_free[i] = 1;
+    if (is_page_free != NULL) {
+      is_page_free[i] = 1;
+    }
   }
   kernel_brk = (void *)UP_TO_PAGE(end);
 }
