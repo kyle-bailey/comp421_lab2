@@ -1,33 +1,15 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
 #include <stdlib.h>
-#include <string.h>
 #include "trap_handlers.h"
 #include "process_control_block.h"
 #include "memory_management.h"
 
 void occupy_kernel_pages_up_to(void *end);
 
-
-//int array that keeps track of what pages are free (0 means free, 1 means occupied)
-int virt_mem_initialized = 0;
 void **interrupt_vector_table;
 struct pte *kernel_page_table;
 struct pte *user_page_table = NULL;
-
-int SetKernelBrk(void *addr) {
-  if(virt_mem_initialized) {
-    //more complicated stuff
-  } else {
-    // SetKernelBrk should never be freeing a page we have already allocated.
-    if ((long)addr <= (long)kernel_brk - PAGESIZE) {
-      return -1;
-    }
-    occupy_kernel_pages_up_to(addr);
-  }
-
-  return 0;
-}
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
   TracePrintf(1, "KernelStart called.\n");
@@ -35,16 +17,12 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   int i;
 
   //initalize structure that keeps track of free pages
-  //note that this will mark physical pages as occupied starting from VMEM_1_BASE up to whatever
-  //is_page_occupied needs.
-  is_page_occupied = malloc(pmem_size/PAGESIZE * sizeof(int));
-
-  memset(is_page_occupied, 0, sizeof(is_page_occupied));
+  init_is_page_occupied(pmem_size);
 
   TracePrintf(2, "Free pages structure initialized.\n");
 
   //mark kernel stack as occupied
-  occupy_pages_in_range(KERNEL_STACK_BASE, KERNEL_STACK_LIMIT);
+  occupy_pages_in_range((void *)KERNEL_STACK_BASE, (void *)KERNEL_STACK_LIMIT);
 
   //initalize the interrupt vector table
   interrupt_vector_table = malloc(TRAP_VECTOR_SIZE * sizeof(void *));
@@ -132,6 +110,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   //Enable virtual memory
   WriteRegister(REG_VM_ENABLE, 1);
+
+  virt_mem_initialized = 1;
 
   TracePrintf(2, "Virtual memory enabled.\n");
 }
