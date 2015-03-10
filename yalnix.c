@@ -86,19 +86,21 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
   int end_of_heap = ((long)orig_brk - (long)VMEM_1_BASE) / PAGESIZE;
 
+  TracePrintf(2, "End of heap: %d\n", end_of_heap);
+
   for(i = 0; i < PAGE_TABLE_LEN; i++){
     if(i < end_of_text){
       kernel_page_table[i].valid = 1;
       kernel_page_table[i].kprot = 5; // 101
     } else if(i < end_of_heap) {
       kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot = 6; // 110
+      kernel_page_table[i].kprot = 3; // 110
     } else {
       kernel_page_table[i].valid = 0;
       kernel_page_table[i].kprot = 6; // 110
     }
     kernel_page_table[i].uprot = 0; // 000
-    kernel_page_table[i].pfn = i;
+    kernel_page_table[i].pfn = i + (long)VMEM_1_BASE/PAGESIZE;
   }
 
   TracePrintf(2, "Kernel page table initialized.\n");
@@ -107,20 +109,27 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   user_page_table = malloc(PAGE_TABLE_SIZE);
 
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
-    if (i >= KERNEL_STACK_BASE / PAGESIZE - 1) {
+    if (i >= KERNEL_STACK_BASE / PAGESIZE) {
       user_page_table[i].valid = 1;
+      user_page_table[i].kprot = 3;
+      user_page_table[i].uprot = 0;
     } else {
       user_page_table[i].valid = 0;
+      user_page_table[i].kprot = 0; // 000
+      user_page_table[i].uprot = 6; // 110
     }
-    user_page_table[i].kprot = 0; // 000
     user_page_table[i].pfn = i;
+  }
+
+  for (i = 508; i < 512; i++) {
+    TracePrintf(2, "%d\n", user_page_table[i].valid);
   }
 
   TracePrintf(2, "User page table initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
-  WriteRegister(REG_PTR0, (RCS421RegVal)&user_page_table);
-  WriteRegister(REG_PTR1, (RCS421RegVal)&kernel_page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
+  WriteRegister(REG_PTR1, (RCS421RegVal)kernel_page_table);
 
   TracePrintf(2, "Kernel and user page table pointers set.\n");
 
@@ -135,10 +144,14 @@ occupy_kernel_pages_up_to(void *end) {
   int i;
 
   int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
+  TracePrintf(2, "Boundary: %d\n", boundary);
   for(i = 0; i < boundary; i++){
     if (is_page_free != NULL) {
-      is_page_free[i] = 1;
+      is_page_free[i+(long)kernel_brk/PAGESIZE] = 1;
     }
   }
   kernel_brk = (void *)UP_TO_PAGE(end);
+  TracePrintf(2, "Up to page: %p\n", UP_TO_PAGE(end));
+  TracePrintf(2, "Kernel brk: %p\n", kernel_brk);
+  TracePrintf(2, "Kernel brk/PAGESIZE: %ld\n", (long)kernel_brk/PAGESIZE);
 }
