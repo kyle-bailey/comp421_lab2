@@ -8,8 +8,8 @@
 void occupy_kernel_pages_up_to(void *end);
 
 
-//int array that keeps track of what pages are free (0 means free, 1 means not free)
-int *is_page_free;
+//int array that keeps track of what pages are free (0 means free, 1 means occupied)
+int *is_page_occupied;
 int virt_mem_initialized = 0;
 void *kernel_brk = (void *)VMEM_1_BASE;
 void **interrupt_vector_table;
@@ -36,12 +36,11 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   int i;
 
   //initalize structure that keeps track of free pages
-  is_page_free = malloc(pmem_size/PAGESIZE * sizeof(int));
+  //note that this will mark physical pages as occupied starting from VMEM_1_BASE up to whatever
+  //is_page_occupied needs.
+  is_page_occupied = malloc(pmem_size/PAGESIZE * sizeof(int));
 
-  memset(is_page_free, 0, sizeof(is_page_free));
-
-  // Set all pages from PMEM_BASE up to orig_break as in use
-  occupy_kernel_pages_up_to(orig_brk);
+  memset(is_page_occupied, 0, sizeof(is_page_occupied));
 
   TracePrintf(2, "Free pages structure initialized.\n");
 
@@ -146,8 +145,8 @@ occupy_kernel_pages_up_to(void *end) {
   int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
   TracePrintf(2, "Boundary: %d\n", boundary);
   for(i = 0; i < boundary; i++){
-    if (is_page_free != NULL) {
-      is_page_free[i+(long)kernel_brk/PAGESIZE] = 1;
+    if (is_page_occupied != NULL) {
+      is_page_occupied[i+(long)kernel_brk/PAGESIZE] = 1;
     }
   }
   kernel_brk = (void *)UP_TO_PAGE(end);
