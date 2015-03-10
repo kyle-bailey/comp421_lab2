@@ -44,6 +44,9 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   TracePrintf(2, "Free pages structure initialized.\n");
 
+  //mark kernel stack as occupied
+  occupy_pages_in_range(KERNEL_STACK_BASE, KERNEL_STACK_LIMIT);
+
   //initalize the interrupt vector table
   interrupt_vector_table = malloc(TRAP_VECTOR_SIZE * sizeof(void *));
   for(i = 0; i < TRAP_VECTOR_SIZE; i++){
@@ -120,10 +123,6 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     user_page_table[i].pfn = i;
   }
 
-  for (i = 508; i < 512; i++) {
-    TracePrintf(2, "%d\n", user_page_table[i].valid);
-  }
-
   TracePrintf(2, "User page table initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
@@ -143,14 +142,21 @@ occupy_kernel_pages_up_to(void *end) {
   int i;
 
   int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
-  TracePrintf(2, "Boundary: %d\n", boundary);
   for(i = 0; i < boundary; i++){
     if (is_page_occupied != NULL) {
       is_page_occupied[i+(long)kernel_brk/PAGESIZE] = 1;
     }
   }
   kernel_brk = (void *)UP_TO_PAGE(end);
-  TracePrintf(2, "Up to page: %p\n", UP_TO_PAGE(end));
-  TracePrintf(2, "Kernel brk: %p\n", kernel_brk);
-  TracePrintf(2, "Kernel brk/PAGESIZE: %ld\n", (long)kernel_brk/PAGESIZE);
+}
+
+void
+occupy_pages_in_range(void *begin, void *end) {
+  int i;
+  int boundary = (long)UP_TO_PAGE(end)/PAGESIZE;
+  int start = (long)DOWN_TO_PAGE(begin)/PAGESIZE;
+
+  for(i = start; i < boundary; i++){
+    is_page_occupied[i] = 1;
+  }
 }
