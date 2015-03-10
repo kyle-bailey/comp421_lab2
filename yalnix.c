@@ -139,13 +139,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
 void
 occupy_kernel_pages_up_to(void *end) {
-  int i;
-
-  int boundary = (UP_TO_PAGE(end) - (long)kernel_brk)/PAGESIZE;
-  for(i = 0; i < boundary; i++){
-    if (is_page_occupied != NULL) {
-      is_page_occupied[i+(long)kernel_brk/PAGESIZE] = 1;
-    }
+  if(is_page_occupied != NULL){
+    occupy_pages_in_range(kernel_brk, end);
   }
   kernel_brk = (void *)UP_TO_PAGE(end);
 }
