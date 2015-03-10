@@ -47,3 +47,17 @@ init_is_page_occupied(unsigned int pmem_size) {
 
   memset(is_page_occupied, 0, sizeof(is_page_occupied));
 }
+
+int
+num_free_user_pages() {
+  int count = 0;
+  int i;
+
+  for(i = 0; i < VMEM_0_LIMIT/PAGESIZE; i++){
+    if(is_page_occupied[i] == 0){
+      count++;
+    }
+  }
+
+  return count;
+}
