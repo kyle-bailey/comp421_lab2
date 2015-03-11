@@ -178,20 +178,20 @@ LoadProgram(char *name, char **args)
     int top_boundary = text_npg + data_bss_npg + stack_npg;
     for(i = 0; i < top_boundary; i++){
       if(i < text_npg){
-        user_page_table[i].valid = 1;
-        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].uprot = PROT_READ | PROT_EXEC;
-        user_page_table[i].pfn = acquire_free_physical_page();
+        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
+        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_EXEC;
+        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       } else if( i < data_bss_npg + text_npg){
-        user_page_table[i].valid = 1;
-        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].pfn = acquire_free_physical_page();
+        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
+        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
+        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       } else if(i < data_bss_npg + text_npg + stack_npg){
-        user_page_table[i].valid = 1;
-        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].pfn = acquire_free_physical_page();
+        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
+        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
+        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       }
     }
 
@@ -205,15 +205,10 @@ LoadProgram(char *name, char **args)
     /*
      *  Read the text and data from the file into memory.
      */
-    if (read(fd, (void *)MEM_INVALID_SIZE, li.text_size+li.data_size)
-      != li.text_size+li.data_size) {
+    if (read(fd, (void *)MEM_INVALID_SIZE, li.text_size+li.data_size) != li.text_size+li.data_size) {
       TracePrintf(0, "LoadProgram: couldn't read for '%s'\n", name);
       free(argbuf);
       close(fd);
-      >>>> Since we are returning -2 here, this should mean to
-      >>>> the rest of the kernel that the current process should
-      >>>> be terminated with an exit status of ERROR reported
-      >>>> to its parent process.
       return (-2);
     }
 
@@ -223,8 +218,9 @@ LoadProgram(char *name, char **args)
      *  Now set the page table entries for the program text to be readable
      *  and executable, but not writable.
      */
-    >>>> For text_npg number of PTEs corresponding to the user text
-    >>>> pages, set each PTE's kprot to PROT_READ | PROT_EXEC.
+    for(i = MEM_INVALID_PAGES; i < text_npg + MEM_INVALID_PAGES; i++){
+      user_page_table[i].kprot = PROT_READ | PROT_EXEC;
+    }
 
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
@@ -245,10 +241,10 @@ LoadProgram(char *name, char **args)
     *cpp++ = (char *)argcount;        /* the first value at cpp is argc */
     cp2 = argbuf;
     for (i = 0; i < argcount; i++) {      /* copy each argument and set argv */
-    *cpp++ = cp;
-    strcpy(cp, cp2);
-    cp += strlen(cp) + 1;
-    cp2 += strlen(cp2) + 1;
+      *cpp++ = cp;
+      strcpy(cp, cp2);
+      cp += strlen(cp) + 1;
+      cp2 += strlen(cp2) + 1;
     }
     free(argbuf);
     *cpp++ = NULL;    /* the last argv is a NULL pointer */
