@@ -74,4 +74,9 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   virt_mem_initialized = 1;
 
   TracePrintf(2, "Virtual memory enabled.\n");
+
+  char *loadargs[1];
+  loadargs[0] = NULL;
+
+  LoadProgram("idle", loadargs, frame);
 }

@@ -173,8 +173,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
      */
 
     //Leave the first MEM_INVALID_PAGES number of PTEs unused
-    int top_boundary = text_npg + data_bss_npg + stack_npg;
-    for(i = 0; i < top_boundary; i++){
+    int text_data_bss_top_boundary = text_npg + data_bss_npg;
+    for(i = 0; i < text_data_bss_top_boundary; i++){
       if(i < text_npg){
         user_page_table[i + MEM_INVALID_PAGES].valid = 1;
         user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
@@ -185,12 +185,18 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
         user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
         user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
         user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
-      } else if(i < data_bss_npg + text_npg + stack_npg){
-        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
-        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
-        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       }
+    }
+
+    //the user stack grows downwards from just below the kernel stack.
+    //the last page of the user stack *ends* at virtual address USER_STACK_LIMIT
+    int last_user_page = USER_STACK_LIMIT/PAGESIZE - 1;
+    TracePrintf(4, "Last User Page: %d\n", last_user_page);
+    for (i = last_user_page; i > last_user_page - stack_npg; i--) {
+        user_page_table[i].valid = 1;
+        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].pfn = acquire_free_physical_page();
     }
 
     /*
