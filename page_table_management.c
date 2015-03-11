@@ -6,6 +6,7 @@ struct pte *user_page_table;
 //Kernel Page Table initialzation
 void
 init_kernel_page_table(){
+  int i;
   kernel_page_table = malloc(PAGE_TABLE_SIZE);
 
   int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
@@ -30,6 +31,7 @@ init_kernel_page_table(){
 
 void
 init_user_page_table(){
+  int i;
   user_page_table = malloc(PAGE_TABLE_SIZE);
 
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
