@@ -3,6 +3,7 @@
 //int array that keeps track of what pages are free (0 means free, 1 means occupied)
 int *is_physical_page_occupied = NULL;
 void *kernel_brk = (void *)VMEM_1_BASE;
+int num_physical_pages;
 
 int virt_mem_initialized = 0;
 
@@ -43,7 +44,8 @@ void
 init_is_physical_page_occupied(unsigned int pmem_size) {
   //note that this will mark physical pages as occupied starting from VMEM_1_BASE up to whatever
   //is_page_occupied needs.
-  is_physical_page_occupied = malloc(pmem_size/PAGESIZE * sizeof(int));
+  num_physical_pages = pmem_size/PAGESIZE;
+  is_physical_page_occupied = malloc(num_physical_pages * sizeof(int));
 
   memset(is_physical_page_occupied, 0, sizeof(is_physical_page_occupied));
 }
@@ -65,4 +67,16 @@ num_free_physical_pages() {
 void
 free_physical_page(unsigned int pfn) {
   is_physical_page_occupied[pfn] = 0;
+}
+
+unsigned int
+aquire_free_physical_page() {
+  int i;
+  for(i = 0; i < pmem_size/PAGESIZE; i++){
+    if(is_physical_page_occupied[i] == 0){
+      is_physical_page_occupied[i] = 1;
+      return i;
+    }
+  }
+  Halt();
 }

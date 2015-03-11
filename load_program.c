@@ -174,8 +174,15 @@ LoadProgram(char *name, char **args)
      *  from the file.  We then change them read/execute.
      */
 
-    >>>> Leave the first MEM_INVALID_PAGES number of PTEs in the
-    >>>> Region 0 page table unused (and thus invalid)
+    //Leave the first MEM_INVALID_PAGES number of PTEs unused
+    int top_boundary = text_npg + data_bss_npg + stack_npg;
+    for(i = 0; i < top_boundary; i++){
+      if(i < text_npg){
+        user_page_table[i].valid = 1;
+        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].uprot = PROT_READ | PROT_EXEC;
+      }
+    }
 
     /* First, the text pages */
     >>>> For the next text_npg number of PTEs in the Region 0
