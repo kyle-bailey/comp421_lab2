@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int *is_physical_page_occupied;
 extern void *kernel_brk;
 extern int virt_mem_initialized;
 
