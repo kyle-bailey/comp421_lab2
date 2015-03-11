@@ -29,7 +29,7 @@
  *  in this case.
  */
 int
-LoadProgram(char *name, char **args)
+LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
 {
     int fd;
     int status;
@@ -148,17 +148,15 @@ LoadProgram(char *name, char **args)
       return (-1);
     }
 
-    >>>> Initialize sp for the current process to (char *)cpp.
-    //assume some interface that will give us the current pcb
-    //get_current_pcb().stack_ptr = (char *)cpp;
+    //Initialize sp for the current process to (char *)cpp.
+    frame->sp = (char *)cpp;
 
     /*
      *  Free all the old physical memory belonging to this process,
      *  but be sure to leave the kernel stack for this process (which
      *  is also in Region 0) alone.
      */
-    int i;
-    for(i = 0; i < PAGE_TABLE_LEN - KERNEL_STACK_PAGES) {
+    for(i = 0; i < PAGE_TABLE_LEN - KERNEL_STACK_PAGES; i++) {
       if(user_page_table[i].valid == 1){
         //free physical memory and set as invalid
         free_physical_page(user_page_table[i].pfn);
@@ -233,7 +231,7 @@ LoadProgram(char *name, char **args)
     /*
      *  Set the entry point in the exception frame.
      */
-    >>>> Initialize pc for the current process to (void *)li.entry
+    frame->pc = (void *)li.entry;
 
     /*
      *  Now, finally, build the argument list on the new stack.
@@ -257,9 +255,10 @@ LoadProgram(char *name, char **args)
      *  value for the PSR will make the process run in user mode,
      *  since this PSR value of 0 does not have the PSR_MODE bit set.
      */
-    >>>> Initialize regs[0] through regs[NUM_REGS-1] for the
-    >>>> current process to 0.
-    >>>> Initialize psr for the current process to 0.
+    for (i=0; i < NUM_REGS; i++) {
+        frame->regs[i] = 0;
+    }
+    frame->psr = 0;
 
     return (0);
 }
