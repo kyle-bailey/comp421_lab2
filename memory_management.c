@@ -61,3 +61,8 @@ num_free_physical_pages() {
 
   return count;
 }
+
+void
+free_physical_page(unsigned int pfn) {
+  is_physical_page_occupied[pfn] = 0;
+}

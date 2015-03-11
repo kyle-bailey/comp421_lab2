@@ -6,6 +6,7 @@
 #include <comp421/hardware.h>
 #include <comp421/loadinfo.h>
 #include "memory_management.h"
+#include "page_table_management.h"
 
 /*
  *  Load a program into the current process's address space.  The
@@ -137,7 +138,7 @@ LoadProgram(char *name, char **args)
      *  stack. Additionally, allow for the physical memory
      *  allocated to this process that will be freed.
      */
-     
+
     int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use_by_current_process();
 
     if (num_free_physical_pages() < required_free_physical_pages) {
@@ -148,19 +149,22 @@ LoadProgram(char *name, char **args)
     }
 
     >>>> Initialize sp for the current process to (char *)cpp.
-    >>>> The value of cpp was initialized above.
+    //assume some interface that will give us the current pcb
+    //get_current_pcb().stack_ptr = (char *)cpp;
 
     /*
      *  Free all the old physical memory belonging to this process,
      *  but be sure to leave the kernel stack for this process (which
      *  is also in Region 0) alone.
      */
-    >>>> Loop over all PTEs for the current process's Region 0,
-    >>>> except for those corresponding to the kernel stack (between
-    >>>> address KERNEL_STACK_BASE and KERNEL_STACK_LIMIT).  For
-    >>>> any of these PTEs that are valid, free the physical memory
-    >>>> memory page indicated by that PTE's pfn field.  Set all
-    >>>> of these PTEs to be no longer valid.
+    int i;
+    for(i = 0; i < PAGE_TABLE_LEN - KERNEL_STACK_PAGES) {
+      if(user_page_table[i].valid == 1){
+        //free physical memory and set as invalid
+        free_physical_page(user_page_table[i].pfn);
+        user_page_table[i].valid = 0;
+      }
+    }
 
     /*
      *  Fill in the page table with the right number of text,
