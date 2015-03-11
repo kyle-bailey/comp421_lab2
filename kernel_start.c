@@ -5,8 +5,6 @@
 #include "process_control_block.h"
 #include "memory_management.h"
 
-void occupy_kernel_pages_up_to(void *end);
-
 void **interrupt_vector_table;
 struct pte *kernel_page_table;
 struct pte *user_page_table = NULL;
@@ -17,7 +15,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   int i;
 
   //initalize structure that keeps track of free pages
-  init_is_page_occupied(pmem_size);
+  init_is_physical_page_occupied(pmem_size);
 
   TracePrintf(2, "Free pages structure initialized.\n");
 

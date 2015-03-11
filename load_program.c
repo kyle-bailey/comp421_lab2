@@ -5,6 +5,7 @@
 
 #include <comp421/hardware.h>
 #include <comp421/loadinfo.h>
+#include "memory_management.h"
 
 /*
  *  Load a program into the current process's address space.  The
@@ -131,21 +132,16 @@ LoadProgram(char *name, char **args)
     /*
      *  And make sure there will be enough physical memory to
      *  load the new program.
+     *  The new program will require text_npg pages of text,
+     *  data_bss_npg pages of data/bss, and stack_npg pages of
+     *  stack. Additionally, allow for the physical memory
+     *  allocated to this process that will be freed.
      */
-    >>>> The new program will require text_npg pages of text,
-    >>>> data_bss_npg pages of data/bss, and stack_npg pages of
-    >>>> stack.  In checking that there is enough free physical
-    >>>> memory for this, be sure to allow for the physical memory
-    >>>> pages already allocated to this process that will be
-    >>>> freed below before we allocate the needed pages for
-    >>>> the new program being loaded.
-    if (>>>> not enough free physical memory) {
-    TracePrintf(0,
-        "LoadProgram: program '%s' size too large for physical memory\n",
-        name);
-    free(argbuf);
-    close(fd);
-    return (-1);
+    if (num_free_physical_pages() < (text_npg + data_bss_npg + stack_npg)) {
+      TracePrintf(0, "LoadProgram: program '%s' size too large for physical memory\n", name);
+      free(argbuf);
+      close(fd);
+      return (-1);
     }
 
     >>>> Initialize sp for the current process to (char *)cpp.
@@ -211,15 +207,15 @@ LoadProgram(char *name, char **args)
      *  Read the text and data from the file into memory.
      */
     if (read(fd, (void *)MEM_INVALID_SIZE, li.text_size+li.data_size)
-    != li.text_size+li.data_size) {
-    TracePrintf(0, "LoadProgram: couldn't read for '%s'\n", name);
-    free(argbuf);
-    close(fd);
-    >>>> Since we are returning -2 here, this should mean to
-    >>>> the rest of the kernel that the current process should
-    >>>> be terminated with an exit status of ERROR reported
-    >>>> to its parent process.
-    return (-2);
+      != li.text_size+li.data_size) {
+      TracePrintf(0, "LoadProgram: couldn't read for '%s'\n", name);
+      free(argbuf);
+      close(fd);
+      >>>> Since we are returning -2 here, this should mean to
+      >>>> the rest of the kernel that the current process should
+      >>>> be terminated with an exit status of ERROR reported
+      >>>> to its parent process.
+      return (-2);
     }
 
     close(fd);            /* we've read it all now */
