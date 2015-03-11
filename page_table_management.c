@@ -48,3 +48,16 @@ init_user_page_table(){
   }
   TracePrintf(2, "User page table initialized.\n");
 }
+
+//assumes that virtual memory has been enabled
+int
+num_pages_in_use_by_current_process(){
+  int i;
+  int count = 0;
+  for(i = 0; i < PAGE_TABLE_LEN); i++){
+    if(user_page_table[i].valid == 1){
+      count++;
+    }
+  }
+  return count;
+}

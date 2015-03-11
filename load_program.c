@@ -137,7 +137,10 @@ LoadProgram(char *name, char **args)
      *  stack. Additionally, allow for the physical memory
      *  allocated to this process that will be freed.
      */
-    if (num_free_physical_pages() < (text_npg + data_bss_npg + stack_npg)) {
+     
+    int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use_by_current_process();
+
+    if (num_free_physical_pages() < required_free_physical_pages) {
       TracePrintf(0, "LoadProgram: program '%s' size too large for physical memory\n", name);
       free(argbuf);
       close(fd);
