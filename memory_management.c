@@ -70,7 +70,7 @@ free_physical_page(unsigned int pfn) {
 }
 
 unsigned int
-aquire_free_physical_page() {
+acquire_free_physical_page() {
   int i;
   for(i = 0; i < num_physical_pages; i++){
     if(is_physical_page_occupied[i] == 0){

@@ -11,3 +11,4 @@ void occupy_pages_in_range(void *begin, void *end);
 void init_is_physical_page_occupied(unsigned int pmem_size);
 int num_free_physical_pages();
 void free_physical_page();
+unsigned int acquire_free_physical_page();

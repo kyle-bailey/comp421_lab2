@@ -181,34 +181,19 @@ LoadProgram(char *name, char **args)
         user_page_table[i].valid = 1;
         user_page_table[i].kprot = PROT_READ | PROT_WRITE;
         user_page_table[i].uprot = PROT_READ | PROT_EXEC;
+        user_page_table[i].pfn = acquire_free_physical_page();
+      } else if( i < data_bss_npg + text_npg){
+        user_page_table[i].valid = 1;
+        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].pfn = acquire_free_physical_page();
+      } else if(i < data_bss_npg + text_npg + stack_npg){
+        user_page_table[i].valid = 1;
+        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
+        user_page_table[i].pfn = acquire_free_physical_page();
       }
     }
-
-    /* First, the text pages */
-    >>>> For the next text_npg number of PTEs in the Region 0
-    >>>> page table, initialize each PTE:
-    >>>>     valid = 1
-    >>>>     kprot = PROT_READ | PROT_WRITE
-    >>>>     uprot = PROT_READ | PROT_EXEC
-    >>>>     pfn   = a new page of physical memory
-
-    /* Then the data and bss pages */
-    >>>> For the next data_bss_npg number of PTEs in the Region 0
-    >>>> page table, initialize each PTE:
-    >>>>     valid = 1
-    >>>>     kprot = PROT_READ | PROT_WRITE
-    >>>>     uprot = PROT_READ | PROT_WRITE
-    >>>>     pfn   = a new page of physical memory
-
-    /* And finally the user stack pages */
-    >>>> For stack_npg number of PTEs in the Region 0 page table
-    >>>> corresponding to the user stack (the last page of the
-    >>>> user stack *ends* at virtual address USER_STACK_LMIT),
-    >>>> initialize each PTE:
-    >>>>     valid = 1
-    >>>>     kprot = PROT_READ | PROT_WRITE
-    >>>>     uprot = PROT_READ | PROT_WRITE
-    >>>>     pfn   = a new page of physical memory
 
     /*
      *  All pages for the new address space are now in place.  Flush
