@@ -4,10 +4,9 @@
 #include "trap_handlers.h"
 #include "process_control_block.h"
 #include "memory_management.h"
+#include "page_table_management.h"
 
 void **interrupt_vector_table;
-struct pte *kernel_page_table;
-struct pte *user_page_table = NULL;
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
   TracePrintf(1, "KernelStart called.\n");
@@ -58,47 +57,10 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   TracePrintf(2, "Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
 
   //Kernel Page Table initialzation
-  kernel_page_table = malloc(PAGE_TABLE_SIZE);
-
-  int end_of_text = ((long)&_etext - (long)VMEM_1_BASE) / PAGESIZE;
-  int end_of_heap = ((long)kernel_brk - (long)VMEM_1_BASE) / PAGESIZE;
-
-  TracePrintf(2, "End of heap: %d\n", end_of_heap);
-
-  for(i = 0; i < PAGE_TABLE_LEN; i++){
-    if(i < end_of_text){
-      kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot = 5; // 101
-    } else if(i <= end_of_heap) {
-      kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot = 3; // 110
-    } else {
-      kernel_page_table[i].valid = 0;
-      kernel_page_table[i].kprot = 3; // 110
-    }
-    kernel_page_table[i].uprot = 0; // 000
-    kernel_page_table[i].pfn = i + (long)VMEM_1_BASE/PAGESIZE;
-  }
-
-  TracePrintf(2, "Kernel page table initialized.\n");
+  init_kernel_page_table();
 
   //Region 0 Page Table Initilization
-  user_page_table = malloc(PAGE_TABLE_SIZE);
-
-  for(i = 0; i < PAGE_TABLE_LEN; i++) {
-    if (i >= KERNEL_STACK_BASE / PAGESIZE) {
-      user_page_table[i].valid = 1;
-      user_page_table[i].kprot = 3;
-      user_page_table[i].uprot = 0;
-    } else {
-      user_page_table[i].valid = 0;
-      user_page_table[i].kprot = 0; // 000
-      user_page_table[i].uprot = 6; // 110
-    }
-    user_page_table[i].pfn = i;
-  }
-
-  TracePrintf(2, "User page table initialized.\n");
+  init_user_page_table();
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
   WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
