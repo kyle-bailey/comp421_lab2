@@ -9,5 +9,6 @@ struct schedule_item {
 };
 
 struct schedule_item * get_head();
-void add_schedule_item(struct process_control_block *pcb);
+void move_head_to_tail();
 void decapitate();
+void add_pcb_to_schedule(struct process_control_block *pcb);

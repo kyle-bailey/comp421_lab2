@@ -8,20 +8,15 @@ get_head() {
 }
 
 void
-add_schedule_item(struct process_control_block *pcb) {
-
-  struct schedule_item *new_item = malloc(sizeof(struct schedule_item));
-  new_item->pcb = pcb;
-  new_item->next = NULL;
-
-  if(head == NULL){
-    head = new_item;
-  } else {
+move_head_to_tail() {
+  if(head != NULL){
     struct schedule_item *current = head;
+    struct schedule_item *new_head = head->next;
     while(current->next != NULL){
       current = current->next;
     }
-    current->next = new_item;
+    current->next = head;
+    head = new_head;
   }
 }
 
@@ -33,4 +28,12 @@ decapitate() {
     free(temp->pcb);
     free(temp);
   }
+}
+
+void
+add_pcb_to_schedule(struct process_control_block *pcb) {
+  struct schedule_item *new_item = malloc(sizeof(struct schedule_item));
+  new_item->pcb = pcb;
+  new_item->next = head;
+  head = new_item;
 }

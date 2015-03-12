@@ -5,5 +5,5 @@ struct process_control_block
 {
   int pid;
   struct pte *page_table[((long)VMEM_0_LIMIT - (long)VMEM_0_BASE)/PAGESIZE];
-  SavedContext saved_context;
+  SavedContext *saved_context;
 };
