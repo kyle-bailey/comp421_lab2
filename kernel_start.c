@@ -26,25 +26,32 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   for(i = 0; i < TRAP_VECTOR_SIZE; i++){
     switch(i){
       case TRAP_KERNEL:
-        interrupt_vector_table[i] = &kernel_trap_handler;
+        interrupt_vector_table[i] = kernel_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_KERNEL);
         break;
       case TRAP_CLOCK:
-        interrupt_vector_table[i] = &clock_trap_handler;
+        interrupt_vector_table[i] = clock_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_CLOCK);
         break;
       case TRAP_ILLEGAL:
-        interrupt_vector_table[i] = &illegal_trap_handler;
+        interrupt_vector_table[i] = illegal_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_ILLEGAL);
         break;
       case TRAP_MEMORY:
-        interrupt_vector_table[i] = &memory_trap_handler;
+        interrupt_vector_table[i] = memory_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_MEMORY);
         break;
       case TRAP_MATH:
-        interrupt_vector_table[i] = &math_trap_handler;
+        interrupt_vector_table[i] = math_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_MATH);
         break;
       case TRAP_TTY_RECEIVE:
-        interrupt_vector_table[i] = &tty_recieve_trap_handler;
+        interrupt_vector_table[i] = tty_recieve_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_TTY_RECEIVE);
         break;
       case TRAP_TTY_TRANSMIT:
-        interrupt_vector_table[i] = &tty_transmit_trap_handler;
+        interrupt_vector_table[i] = tty_transmit_trap_handler;
+        TracePrintf(3, "%d\n", TRAP_TTY_TRANSMIT);
         break;
       default:
         interrupt_vector_table[i] = NULL;
@@ -52,7 +59,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   }
 
   //Initialize REG_VECTOR_BASE privileged machine register to point to table
-  WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)&interrupt_vector_table);
+  WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)interrupt_vector_table);
 
   TracePrintf(2, "Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
 
