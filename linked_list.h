@@ -6,4 +6,4 @@
 struct schedule_item {
   struct schedule_item *next;
   struct process_control_block *pcb;
-}
+};
