@@ -5,6 +5,7 @@
 #include "process_control_block.h"
 #include "memory_management.h"
 #include "page_table_management.h"
+#include "load_program.h"
 
 void **interrupt_vector_table;
 

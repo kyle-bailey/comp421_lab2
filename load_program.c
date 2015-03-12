@@ -1,12 +1,4 @@
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <comp421/hardware.h>
-#include <comp421/loadinfo.h>
-#include "memory_management.h"
-#include "page_table_management.h"
+#include "load_program.h"
 
 /*
  *  Load a program into the current process's address space.  The
