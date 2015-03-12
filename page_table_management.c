@@ -37,12 +37,12 @@ init_user_page_table(){
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
     if (i >= KERNEL_STACK_BASE / PAGESIZE) {
       user_page_table[i].valid = 1;
-      user_page_table[i].kprot = 3;
-      user_page_table[i].uprot = 0;
+      user_page_table[i].kprot = PROT_READ | PROT_WRITE;
+      user_page_table[i].uprot = PROT_NONE;
     } else {
       user_page_table[i].valid = 0;
-      user_page_table[i].kprot = 0; // 000
-      user_page_table[i].uprot = 6; // 110
+      user_page_table[i].kprot = PROT_NONE;
+      user_page_table[i].uprot = PROT_READ | PROT_EXEC;
     }
     user_page_table[i].pfn = i;
   }
