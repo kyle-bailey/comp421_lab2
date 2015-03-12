@@ -15,15 +15,15 @@ init_kernel_page_table(){
   for(i = 0; i < PAGE_TABLE_LEN; i++){
     if(i < end_of_text){
       kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot = 5; // 101
+      kernel_page_table[i].kprot = PROT_READ | PROT_EXEC;
     } else if(i <= end_of_heap) {
       kernel_page_table[i].valid = 1;
-      kernel_page_table[i].kprot = 3; // 110
+      kernel_page_table[i].kprot = PROT_READ | PROT_WRITE;
     } else {
       kernel_page_table[i].valid = 0;
-      kernel_page_table[i].kprot = 3; // 110
+      kernel_page_table[i].kprot = PROT_READ | PROT_WRITE;
     }
-    kernel_page_table[i].uprot = 0; // 000
+    kernel_page_table[i].uprot = PROT_NONE;
     kernel_page_table[i].pfn = i + (long)VMEM_1_BASE/PAGESIZE;
   }
   TracePrintf(2, "Kernel page table initialized.\n");
