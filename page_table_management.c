@@ -30,21 +30,21 @@ init_kernel_page_table(){
 }
 
 void
-init_user_page_table(){
+prep_user_page_table(struct pte *page_table){
   int i;
-  user_page_table = malloc(PAGE_TABLE_SIZE);
+  page_table = *page_table_ptr;
 
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
     if (i >= KERNEL_STACK_BASE / PAGESIZE) {
-      user_page_table[i].valid = 1;
-      user_page_table[i].kprot = PROT_READ | PROT_WRITE;
-      user_page_table[i].uprot = PROT_NONE;
+      page_table[i].valid = 1;
+      page_table[i].kprot = PROT_READ | PROT_WRITE;
+      page_table[i].uprot = PROT_NONE;
     } else {
-      user_page_table[i].valid = 0;
-      user_page_table[i].kprot = PROT_NONE;
-      user_page_table[i].uprot = PROT_READ | PROT_EXEC;
+      page_table[i].valid = 0;
+      page_table[i].kprot = PROT_NONE;
+      page_table[i].uprot = PROT_READ | PROT_EXEC;
     }
-    user_page_table[i].pfn = i;
+    page_table[i].pfn = i;
   }
   TracePrintf(2, "User page table initialized.\n");
 }

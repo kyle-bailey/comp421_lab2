@@ -5,9 +5,6 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
   struct process_control_block *pcb1 = (struct process_control_block *)p1;
   struct process_control_block *pcb2 = (struct process_control_block *)p2;
 
-  // set the frozen savedcontext of the process getting switched out.
-  pcb1->saved_context = ctxp;
-
   // Change REG_PTR0 to the page table of process 2
   WriteRegister(REG_PTR0, (RCS421RegVal)pcb2->page_table);
 
@@ -49,6 +46,5 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
     process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot;
   }
 
-  pcb1->saved_context = ctxp;
   return pcb1->saved_context;  
 }
