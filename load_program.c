@@ -21,7 +21,7 @@
  *  in this case.
  */
 int
-LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
+LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *page_table_to_load)
 {
     int fd;
     int status;
@@ -149,10 +149,10 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
      *  is also in Region 0) alone.
      */
     for(i = 0; i < PAGE_TABLE_LEN - KERNEL_STACK_PAGES; i++) {
-      if(user_page_table[i].valid == 1){
+      if(page_table_to_load[i].valid == 1){
         //free physical memory and set as invalid
-        free_physical_page(user_page_table[i].pfn);
-        user_page_table[i].valid = 0;
+        free_physical_page(page_table_to_load[i].pfn);
+        page_table_to_load[i].valid = 0;
       }
     }
 
@@ -168,15 +168,15 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
     int text_data_bss_top_boundary = text_npg + data_bss_npg;
     for(i = 0; i < text_data_bss_top_boundary; i++){
       if(i < text_npg){
-        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
-        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_EXEC;
-        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
+        page_table_to_load[i + MEM_INVALID_PAGES].valid = 1;
+        page_table_to_load[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
+        page_table_to_load[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_EXEC;
+        page_table_to_load[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       } else if( i < data_bss_npg + text_npg){
-        user_page_table[i + MEM_INVALID_PAGES].valid = 1;
-        user_page_table[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
-        user_page_table[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
+        page_table_to_load[i + MEM_INVALID_PAGES].valid = 1;
+        page_table_to_load[i + MEM_INVALID_PAGES].kprot = PROT_READ | PROT_WRITE;
+        page_table_to_load[i + MEM_INVALID_PAGES].uprot = PROT_READ | PROT_WRITE;
+        page_table_to_load[i + MEM_INVALID_PAGES].pfn = acquire_free_physical_page();
       }
     }
 
@@ -185,10 +185,10 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
     int last_user_page = USER_STACK_LIMIT/PAGESIZE - 1;
     TracePrintf(4, "Last User Page: %d\n", last_user_page);
     for (i = last_user_page; i > last_user_page - stack_npg; i--) {
-        user_page_table[i].valid = 1;
-        user_page_table[i].kprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].uprot = PROT_READ | PROT_WRITE;
-        user_page_table[i].pfn = acquire_free_physical_page();
+        page_table_to_load[i].valid = 1;
+        page_table_to_load[i].kprot = PROT_READ | PROT_WRITE;
+        page_table_to_load[i].uprot = PROT_READ | PROT_WRITE;
+        page_table_to_load[i].pfn = acquire_free_physical_page();
     }
 
     /*
@@ -215,7 +215,7 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame)
      *  and executable, but not writable.
      */
     for(i = MEM_INVALID_PAGES; i < text_npg + MEM_INVALID_PAGES; i++){
-      user_page_table[i].kprot = PROT_READ | PROT_EXEC;
+      page_table_to_load[i].kprot = PROT_READ | PROT_EXEC;
     }
 
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);

@@ -76,8 +76,20 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   TracePrintf(2, "Virtual memory enabled.\n");
 
+  //creating idle process
+  stuct *process_control_block idle_pcb = malloc(sizeof(struct process_control_block));
+  idle_pcb->pid = 1;
+  idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+
+  //creating init process
+  stuct *process_control_block init_pcb = malloc(sizeof(struct process_control_block));
+  init_pcb->pid = 0;
+  init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+
+  //load idle process
   char *loadargs[1];
   loadargs[0] = NULL;
+  LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
-  LoadProgram("idle", loadargs, frame);
+
 }
