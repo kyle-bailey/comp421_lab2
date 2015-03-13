@@ -94,5 +94,10 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
+  //TODO:
+  //Load init
+  //Fix the malloc call -> acquire a free physical page
+  //Add pcb's to the linked list
+
 
 }
