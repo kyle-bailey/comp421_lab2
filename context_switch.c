@@ -17,6 +17,11 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
   return pcb2->saved_context;
 }
 
+/**
+ * This procedure is for use in the ContextSwitch function. It switches contexts from
+ * process 1 to process 2, but before it does so, it copies process 1's kernel stack
+ * over to process 2.
+ */
 SavedContext *
 context_switch_helper_with_kernel_stack_copy(SavedContext *ctxp, void *p1, void *p2) {
   int i = 0;
