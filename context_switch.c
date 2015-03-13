@@ -38,3 +38,16 @@ context_switch_helper_with_kernel_stack_copy(SavedContext *ctxp, void *p1, void 
 
   return context_switch_helper(ctxp, p1, p2);  
 }
+
+/**
+ * This procedure is for use in the ContextSwitch function. All it does is initialize
+ * the SavedContext for the pcb pointed to by p1. No context is actually switched.
+ */
+SavedContext *
+initialize_saved_context(SavedContext *ctxp, void *p1, void *p2) {
+  struct process_control_block *pcb1 = (struct process_control_block *)p1;
+
+  pcb1->saved_context = ctxp;
+
+  pcb1->saved_context;
+}
