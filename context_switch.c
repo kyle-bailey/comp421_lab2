@@ -23,7 +23,7 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
  * over to process 2.
  */
 SavedContext *
-context_switch_helper_with_kernel_stack_copy(SavedContext *ctxp, void *p1, void *p2) {
+idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
   int i = 0;
 
   struct process_control_block *pcb1 = (struct process_control_block *)p1;
@@ -34,25 +34,21 @@ context_switch_helper_with_kernel_stack_copy(SavedContext *ctxp, void *p1, void 
   struct pte **process_2_page_table = pcb2->page_table;
 
   for (i = 0; i < KERNEL_STACK_PAGES; i++) {
+    void *process_2_physical_page_number = aquire_physical_page();
+    void *process_2_physical_page = process_2_physical_page  * PAGESIZE + PMEM_BASE;
+    void *process_1_physical_page = (process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn * PAGESIZE) + PMEM_BASE;
     memcpy(
-      process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE], // dest
-      process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE], // src
+      process_2_physical_page, // dest
+      process_1_physical_page, // src
       PAGESIZE
     );
+
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn = process_2_physical_page_number;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].valid = 1;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot;
   }
 
-  return context_switch_helper(ctxp, p1, p2);  
-}
-
-/**
- * This procedure is for use in the ContextSwitch function. All it does is initialize
- * the SavedContext for the pcb pointed to by p1. No context is actually switched.
- */
-SavedContext *
-initialize_saved_context(SavedContext *ctxp, void *p1, void *p2) {
-  struct process_control_block *pcb1 = (struct process_control_block *)p1;
-
   pcb1->saved_context = ctxp;
-
-  pcb1->saved_context;
+  return pcb1->saved_context;  
 }
