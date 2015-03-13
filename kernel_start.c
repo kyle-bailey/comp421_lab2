@@ -67,6 +67,14 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   idle_pcb->saved_context = malloc(sizeof(SavedContext));
   prep_user_page_table(*idle_pcb->page_table);
+  add_pcb_to_schedule(idle_pcb);
+
+  //creating init process - temp moved to here so we can use malloc
+  struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
+  init_pcb->pid = 0;
+  init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
+  init_pcb->saved_context = malloc(sizeof(SavedContext));
+  add_pcb_to_schedule(init_pcb);
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
   WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
@@ -81,23 +89,21 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   TracePrintf(2, "Virtual memory enabled.\n");
 
-  //creating init process
-  struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
-  init_pcb->pid = 0;
-  init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
-  init_pcb->saved_context = malloc(sizeof(SavedContext));
-
   //load idle process
   char *loadargs[1];
   loadargs[0] = NULL;
   LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
+  TracePrintf(2, "Idle process loaded.\n");
+
   ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
-  //TODO:
-  //Load init
-  //Fix the malloc call -> acquire a free physical page
-  //Add pcb's to the linked list
+  TracePrintf(2, "Initial context switch called.\n");
+
+  //Load init process
+  LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
+
+  TracePrintf(2, "Init process loaded.\n");
 
 
 }
