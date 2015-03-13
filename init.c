@@ -3,7 +3,7 @@
 
 int
 main() {
-  printf("Idle Process Initialized.\n");
+  printf("Init Process Initialized.\n");
   while(1) {
     Pause();
   }
