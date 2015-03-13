@@ -2,7 +2,6 @@
 #include <comp421/yalnix.h>
 #include <stdlib.h>
 #include "trap_handlers.h"
-#include "process_control_block.h"
 #include "memory_management.h"
 #include "page_table_management.h"
 #include "load_program.h"
@@ -63,7 +62,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   //Region 0 Page Table Initilization
   //creating idle process
-  stuct *process_control_block idle_pcb = malloc(sizeof(struct process_control_block));
+  struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   idle_pcb->saved_context = malloc(sizeof(SavedContext));
@@ -83,9 +82,9 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   TracePrintf(2, "Virtual memory enabled.\n");
 
   //creating init process
-  stuct *process_control_block init_pcb = malloc(sizeof(struct process_control_block));
+  struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
   init_pcb->pid = 0;
-  init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+  init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
   init_pcb->saved_context = malloc(sizeof(SavedContext));
 
   //load idle process
@@ -93,7 +92,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   loadargs[0] = NULL;
   LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
-  ContextSwitch(idle_and_init_initialization, idle->pcb, (void *)idle_pcb, (void *)init_pcb);
+  ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
 
 }

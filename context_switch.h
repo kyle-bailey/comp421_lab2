@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "process_control_block.h"
+#include "memory_management.h"
 
 SavedContext * context_switch_helper(SavedContext *ctxp, void *p1, void *p2);
 SavedContext * idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2);

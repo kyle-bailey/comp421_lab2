@@ -31,19 +31,19 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
   struct pte **process_2_page_table = pcb2->page_table;
 
   for (i = 0; i < KERNEL_STACK_PAGES; i++) {
-    void *process_2_physical_page_number = aquire_physical_page();
-    void *process_2_physical_page = process_2_physical_page  * PAGESIZE + PMEM_BASE;
-    void *process_1_physical_page = (process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn * PAGESIZE) + PMEM_BASE;
+    unsigned int process_2_physical_page_number = acquire_free_physical_page();
+    void *process_2_physical_page = process_2_physical_page_number  * PAGESIZE + PMEM_BASE;
+    void *process_1_physical_page = (process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->pfn * PAGESIZE) + PMEM_BASE;
     memcpy(
       process_2_physical_page, // dest
       process_1_physical_page, // src
       PAGESIZE
     );
 
-    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn = process_2_physical_page_number;
-    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].valid = 1;
-    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot;
-    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->pfn = process_2_physical_page_number;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->valid = 1;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->kprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->kprot;
+    process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE]->uprot;
   }
 
   return pcb1->saved_context;  

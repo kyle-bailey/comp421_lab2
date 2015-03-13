@@ -8,4 +8,4 @@
 #include "memory_management.h"
 #include "page_table_management.h"
 
-int LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *page_table_to_load);
+int LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **page_table_to_load);

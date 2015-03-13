@@ -32,8 +32,7 @@ init_kernel_page_table(){
 void
 prep_user_page_table(struct pte *page_table){
   int i;
-  page_table = *page_table_ptr;
-
+  
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
     if (i >= KERNEL_STACK_BASE / PAGESIZE) {
       page_table[i].valid = 1;

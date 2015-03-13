@@ -21,8 +21,10 @@
  *  in this case.
  */
 int
-LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *page_table_to_load)
+LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **page_table_to_load_ptr)
 {
+    struct pte *page_table_to_load = *page_table_to_load_ptr;
+
     int fd;
     int status;
     struct loadinfo li;
