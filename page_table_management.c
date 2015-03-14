@@ -30,20 +30,24 @@ init_kernel_page_table(){
 }
 
 void
-prep_user_page_table(struct pte *page_table){
+prep_user_page_table(struct pte **page_table){
   int i;
+
+  TracePrintf(2, "page_table_management: Starting to prep user page table.\n");
   
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
+    page_table[i] = malloc(sizeof(struct pte));
+
     if (i >= KERNEL_STACK_BASE / PAGESIZE) {
-      page_table[i].valid = 1;
-      page_table[i].kprot = PROT_READ | PROT_WRITE;
-      page_table[i].uprot = PROT_NONE;
+      page_table[i]->valid = 1;
+      page_table[i]->kprot = PROT_READ | PROT_WRITE;
+      page_table[i]->uprot = PROT_NONE;
     } else {
-      page_table[i].valid = 0;
-      page_table[i].kprot = PROT_NONE;
-      page_table[i].uprot = PROT_READ | PROT_EXEC;
+      page_table[i]->valid = 0;
+      page_table[i]->kprot = PROT_NONE;
+      page_table[i]->uprot = PROT_READ | PROT_EXEC;
     }
-    page_table[i].pfn = i;
+    page_table[i]->pfn = i;
   }
   TracePrintf(2, "page_table_management: User page table initialized.\n");
 }

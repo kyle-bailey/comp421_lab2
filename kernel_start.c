@@ -68,6 +68,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   idle_pcb->saved_context = malloc(sizeof(SavedContext));
+  // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
   prep_user_page_table(idle_pcb->page_table);
   add_pcb_to_schedule(idle_pcb);
 
