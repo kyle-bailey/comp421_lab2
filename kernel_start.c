@@ -83,7 +83,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   TracePrintf(2, "kernel_start: init process pcb initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
-  WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
   WriteRegister(REG_PTR1, (RCS421RegVal)kernel_page_table);
 
   TracePrintf(2, "kernel_start: Kernel and user page table pointers set.\n");
