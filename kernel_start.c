@@ -11,14 +11,14 @@
 void **interrupt_vector_table;
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
-  TracePrintf(1, "KernelStart called.\n");
+  TracePrintf(1, "kernel_start: KernelStart called.\n");
 
   int i;
 
   //initalize structure that keeps track of free pages
   init_is_physical_page_occupied(pmem_size);
 
-  TracePrintf(2, "Free pages structure initialized.\n");
+  TracePrintf(2, "kernel_start: Free pages structure initialized.\n");
 
   //mark kernel stack as occupied
   occupy_pages_in_range((void *)KERNEL_STACK_BASE, (void *)KERNEL_STACK_LIMIT);
@@ -56,7 +56,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //Initialize REG_VECTOR_BASE privileged machine register to point to table
   WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)interrupt_vector_table);
 
-  TracePrintf(2, "Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
+  TracePrintf(2, "kernel_start: Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
 
   //Kernel Page Table initialzation
   init_kernel_page_table();
@@ -81,30 +81,30 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
   WriteRegister(REG_PTR1, (RCS421RegVal)kernel_page_table);
 
-  TracePrintf(2, "Kernel and user page table pointers set.\n");
+  TracePrintf(2, "kernel_start: Kernel and user page table pointers set.\n");
 
   //Enable virtual memory
   WriteRegister(REG_VM_ENABLE, 1);
 
   virt_mem_initialized = 1;
 
-  TracePrintf(2, "Virtual memory enabled.\n");
+  TracePrintf(2, "kernel_start: Virtual memory enabled.\n");
 
   //load idle process
   char *loadargs[1];
   loadargs[0] = NULL;
   LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
-  TracePrintf(2, "Idle process loaded.\n");
+  TracePrintf(2, "kernel_start: Idle process loaded.\n");
 
   ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
-  TracePrintf(2, "Initial context switch called.\n");
+  TracePrintf(2, "kernel_start: Initial context switch called.\n");
 
   //Load init process
   LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
 
-  TracePrintf(2, "Init process loaded.\n");
+  TracePrintf(2, "kernel_start: Init process loaded.\n");
 
 
 }

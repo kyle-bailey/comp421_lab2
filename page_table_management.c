@@ -26,7 +26,7 @@ init_kernel_page_table(){
     kernel_page_table[i].uprot = PROT_NONE;
     kernel_page_table[i].pfn = i + (long)VMEM_1_BASE/PAGESIZE;
   }
-  TracePrintf(2, "Kernel page table initialized.\n");
+  TracePrintf(2, "page_table_management: Kernel page table initialized.\n");
 }
 
 void
@@ -45,7 +45,7 @@ prep_user_page_table(struct pte *page_table){
     }
     page_table[i].pfn = i;
   }
-  TracePrintf(2, "User page table initialized.\n");
+  TracePrintf(2, "page_table_management: User page table initialized.\n");
 }
 
 //assumes that virtual memory has been enabled
