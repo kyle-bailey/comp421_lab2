@@ -3,8 +3,9 @@
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
   if(frame->code == YALNIX_GETPID){
-    struct process_control_block *pcb = get_head()->pcb;
-    return pcb->pid;
+    struct process_control_block *pcb = get_head().pcb;
+    int pid = pcb->pid;
+    frame->regs[0] = pid;
   }
   Halt();
 }
