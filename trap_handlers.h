@@ -1,7 +1,5 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
-#include "linked_list.h"
-#include "process_control_block.h"
 
 void kernel_trap_handler(ExceptionStackFrame *frame);
 

@@ -1,5 +1,8 @@
 #include "load_program.h"
 
+#include "memory_management.h"
+#include "page_table_management.h"
+
 /*
  *  Load a program into the current process's address space.  The
  *  program comes from the Unix file identified by "name", and its
