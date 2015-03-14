@@ -1,4 +1,4 @@
-#import "trap_handler.h"
+#import "trap_handlers.h"
 
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
