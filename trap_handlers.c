@@ -1,8 +1,13 @@
-#include <comp421/hardware.h>
-#include <comp421/yalnix.h>
+#import "trap_handlers.h"
 
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
+  if(frame->code == YALNIX_GETPID){
+    struct schedule_item *item = get_head();
+    struct process_control_block *pcb = item->pcb;
+    int pid = pcb->pid;
+    frame->regs[0] = pid;
+  }
   Halt();
 }
 
