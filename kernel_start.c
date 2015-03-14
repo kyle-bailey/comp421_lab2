@@ -6,7 +6,6 @@
 #include "page_table_management.h"
 #include "load_program.h"
 #include "context_switch.h"
-#include "linked_list.h"
 
 void **interrupt_vector_table;
 
@@ -67,8 +66,10 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   idle_pcb->saved_context = malloc(sizeof(SavedContext));
-  prep_user_page_table(*idle_pcb->page_table);
+  prep_user_page_table(idle_pcb->page_table);
   add_pcb_to_schedule(idle_pcb);
+
+  TracePrintf(2, "kernel_start: idle process pcb initialized.\n");
 
   //creating init process - temp moved to here so we can use malloc
   struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
@@ -76,6 +77,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
   init_pcb->saved_context = malloc(sizeof(SavedContext));
   add_pcb_to_schedule(init_pcb);
+
+  TracePrintf(2, "kernel_start: init process pcb initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
   WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);

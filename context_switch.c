@@ -1,4 +1,5 @@
 #include "context_switch.h"
+#include "process_control_block.h"
 
 SavedContext *
 context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
