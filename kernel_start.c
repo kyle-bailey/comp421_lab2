@@ -106,8 +106,6 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
-  TracePrintf(2, "kernel_start: Initial context switch called.\n");
-
   WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 

@@ -63,15 +63,10 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
         WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_kernel_stack);
 
         // give the pfn from the temp memory to process 2's page table.
-        process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].valid = 1;
-        process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot;
-        process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot;
         process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn = process_2_physical_page_number;
         break;
       }
     }
-
-    TracePrintf(4, "context_switch: 4Entering %d\n", i);
   }
 
   TracePrintf(1, "context_switch: idle_and_init_initialization completed.\n");

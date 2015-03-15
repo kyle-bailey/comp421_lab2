@@ -41,6 +41,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     int stack_npg;
 
     TracePrintf(0, "LoadProgram '%s', args %p\n", name, args);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+    
 
     if ((fd = open(name, O_RDONLY)) < 0) {
       TracePrintf(0, "LoadProgram: can't open file '%s'\n", name);
@@ -68,7 +70,11 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
     TracePrintf(0, "text_size 0x%lx, data_size 0x%lx, bss_size 0x%lx\n",
     li.text_size, li.data_size, li.bss_size);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
     TracePrintf(0, "entry 0x%lx\n", li.entry);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Figure out how many bytes are needed to hold the arguments on
@@ -81,6 +87,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
     argcount = i;
     TracePrintf(0, "LoadProgram: size %d, argcount %d\n", size, argcount);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Now save the arguments in a separate buffer in Region 1, since
@@ -113,6 +121,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
 
     TracePrintf(0, "LoadProgram: text_npg %d, data_bss_npg %d, stack_npg %d\n",
     text_npg, data_bss_npg, stack_npg);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Make sure we will leave at least one page between heap and stack
@@ -147,6 +157,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     frame->sp = (char *)cpp;
 
     TracePrintf(3, "LoadProgram: Stack Pointer Initialized.\n");
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Free all the old physical memory belonging to this process,
@@ -162,6 +174,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
 
     TracePrintf(3, "LoadProgram: old physical memory belonging to process freed.\n");
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Fill in the page table with the right number of text,
@@ -188,6 +202,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
 
     TracePrintf(3, "LoadProgram: Text and data&bss prepped.\n");
+
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
     //the user stack grows downwards from just below the kernel stack.
     //the last page of the user stack *ends* at virtual address USER_STACK_LIMIT
