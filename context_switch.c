@@ -31,21 +31,32 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
   struct pte *process_1_page_table = pcb1->page_table;
   struct pte *process_2_page_table = pcb2->page_table;
 
+  TracePrintf(3, "context_switch: beginning kernel stack copy.\n");
+
   for (i = 0; i < KERNEL_STACK_PAGES; i++) {
+    TracePrintf(4, "context_switch: 0Entering %d\n", i);
     unsigned int process_2_physical_page_number = acquire_free_physical_page();
+    TracePrintf(4, "context_switch: 1Entering %d\n", i);
     void *process_2_physical_page = (void *)(long)(process_2_physical_page_number  * PAGESIZE + PMEM_BASE);
+    TracePrintf(4, "context_switch: 2Entering %d\n", i);
     void *process_1_physical_page = (void *)(long)((process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn * PAGESIZE) + PMEM_BASE);
+    TracePrintf(4, "context_switch: 3Entering %d\n", i);
+    TracePrintf(4, "context_switch: process 2: %p\n", process_2_physical_page);
+    TracePrintf(4, "context_switch: process 1: %p\n", process_1_physical_page);
     memcpy(
       process_2_physical_page, // dest
       process_1_physical_page, // src
       PAGESIZE
     );
+    TracePrintf(4, "context_switch: 4Entering %d\n", i);
 
     process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].pfn = process_2_physical_page_number;
     process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].valid = 1;
     process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].kprot;
     process_2_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot = process_1_page_table[i + KERNEL_STACK_BASE/PAGESIZE].uprot;
   }
+
+  TracePrintf(1, "context_switch: idle_and_init_initialization completed.\n");
 
   return pcb1->saved_context;  
 }

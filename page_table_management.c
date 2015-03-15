@@ -1,7 +1,6 @@
 #include "page_table_management.h"
 
 struct pte *kernel_page_table;
-struct pte *user_page_table;
 
 //Kernel Page Table initialzation
 void
@@ -52,11 +51,11 @@ prep_user_page_table(struct pte *page_table){
 
 //assumes that virtual memory has been enabled
 int
-num_pages_in_use_by_current_process(){
+num_pages_in_use(struct pte *page_table){
   int i;
   int count = 0;
   for(i = 0; i < PAGE_TABLE_LEN - KERNEL_STACK_PAGES; i++){
-    if(user_page_table[i].valid == 1){
+    if(page_table[i].valid == 1){
       count++;
     }
   }

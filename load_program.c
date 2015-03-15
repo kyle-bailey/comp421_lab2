@@ -134,7 +134,7 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
      *  allocated to this process that will be freed.
      */
 
-    int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use_by_current_process();
+    int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use(page_table_to_load);
 
     if (num_free_physical_pages() < required_free_physical_pages) {
       TracePrintf(0, "LoadProgram: program '%s' size too large for physical memory\n", name);
@@ -145,6 +145,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
 
     //Initialize sp for the current process to (char *)cpp.
     frame->sp = (char *)cpp;
+
+    TracePrintf(3, "LoadProgram: Stack Pointer Initialized.\n");
 
     /*
      *  Free all the old physical memory belonging to this process,
@@ -158,6 +160,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
         page_table_to_load[i].valid = 0;
       }
     }
+
+    TracePrintf(3, "LoadProgram: old physical memory belonging to process freed.\n");
 
     /*
      *  Fill in the page table with the right number of text,
@@ -183,16 +187,19 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
       }
     }
 
+    TracePrintf(3, "LoadProgram: Text and data&bss prepped.\n");
+
     //the user stack grows downwards from just below the kernel stack.
     //the last page of the user stack *ends* at virtual address USER_STACK_LIMIT
     int last_user_page = USER_STACK_LIMIT/PAGESIZE - 1;
-    TracePrintf(4, "Last User Page: %d\n", last_user_page);
     for (i = last_user_page; i > last_user_page - stack_npg; i--) {
         page_table_to_load[i].valid = 1;
         page_table_to_load[i].kprot = PROT_READ | PROT_WRITE;
         page_table_to_load[i].uprot = PROT_READ | PROT_WRITE;
         page_table_to_load[i].pfn = acquire_free_physical_page();
     }
+
+    TracePrintf(3, "LoadProgram: User stack prepped.\n");
 
     /*
      *  All pages for the new address space are now in place.  Flush
@@ -221,6 +228,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
       page_table_to_load[i].kprot = PROT_READ | PROT_EXEC;
     }
 
+    TracePrintf(3, "LoadProgram: PTEs for program text modified.\n");
+
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
     /*
@@ -233,6 +242,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
      *  Set the entry point in the exception frame.
      */
     frame->pc = (void *)li.entry;
+
+    TracePrintf(3, "LoadProgram: Program Counter set.\n");
 
     /*
      *  Now, finally, build the argument list on the new stack.
@@ -260,6 +271,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
         frame->regs[i] = 0;
     }
     frame->psr = 0;
+
+    TracePrintf(1, "LoadProgram: LoadProgram completed.\n");
 
     return (0);
 }

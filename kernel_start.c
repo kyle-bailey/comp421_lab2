@@ -79,12 +79,13 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   init_pcb->pid = 0;
   init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
   init_pcb->saved_context = malloc(sizeof(SavedContext));
+  prep_user_page_table(init_pcb->page_table);
   add_pcb_to_schedule(init_pcb);
 
   TracePrintf(2, "kernel_start: init process pcb initialized.\n");
 
   //Set PTR0 and PTR1 to point to physical address of starting pages
-  WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)idle_pcb->page_table);
   WriteRegister(REG_PTR1, (RCS421RegVal)kernel_page_table);
 
   TracePrintf(2, "kernel_start: Kernel and user page table pointers set.\n");
@@ -106,6 +107,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
   TracePrintf(2, "kernel_start: Initial context switch called.\n");
+
+  WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
 
   //Load init process
   LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
