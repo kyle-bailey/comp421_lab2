@@ -208,6 +208,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
      */
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
+    TracePrintf(3, "LoadProgram: Just finished flushing TLB.\n");
+
     /*
      *  Read the text and data from the file into memory.
      */
@@ -219,6 +221,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
 
     close(fd);            /* we've read it all now */
+
+    TracePrintf(3, "LoadProgram: Dont reading text and data from file into memory.\n");
 
     /*
      *  Now set the page table entries for the program text to be readable

@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <comp421/hardware.h>
+#include <comp421/yalnix.h>
 
 int
 main() {
   printf("Init Process Initialized.\n");
-  while(1) {
-    Pause();
-  }
+  printf("%d\n", GetPid());
+
+  return 0;
 }
