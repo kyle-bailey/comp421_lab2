@@ -51,9 +51,7 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
         WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_kernel_stack);
 
-        TracePrintf(4, "context_switch: %p\n", process_1_virtual_addr);
-        TracePrintf(4, "context_switch: %p\n", temp_virt_addr_for_kernel_stack);
-
+        // copy kernel stack page into our new page of memory.
         memcpy(
           temp_virt_addr_for_kernel_stack, // dest
           process_1_virtual_addr, // src
