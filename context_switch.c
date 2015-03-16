@@ -37,8 +37,9 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
   for (i = 0; i < KERNEL_STACK_PAGES; i++) {
     unsigned int process_2_physical_page_number = acquire_free_physical_page();
 
-    for (j = MEM_INVALID_PAGES; j < KERNEL_STACK_BASE; j++) {
+    for (j = MEM_INVALID_PAGES; j < KERNEL_STACK_BASE/PAGESIZE; j++) {
       // find the first available page from the user's heap.
+      TracePrintf(3, "context_switch: this is j: %d\n", j);
       if (process_1_page_table[j].valid == 0) {
         // temporarily map that page to a physical page.
         process_1_page_table[j].valid = 1;
@@ -50,6 +51,8 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
         void *temp_virt_addr_for_kernel_stack = (void *)(long)((j * PAGESIZE) + PMEM_BASE);
 
         WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_kernel_stack);
+
+        TracePrintf(3, "context_switch: src: %p, dest: %p\n", process_1_virtual_addr, temp_virt_addr_for_kernel_stack);
 
         // copy kernel stack page into our new page of memory.
         memcpy(
