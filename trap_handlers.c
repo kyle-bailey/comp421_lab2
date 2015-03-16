@@ -20,7 +20,6 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
   decrement_delays();
-  clock_ticks++;
 }
 
 void illegal_trap_handler (ExceptionStackFrame *frame) {
