@@ -3,8 +3,6 @@
 #include "linked_list.h"
 #include "process_control_block.h"
 
-int clock_ticks = 0;
-
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 
@@ -21,6 +19,7 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
+  decrement_delays();
   clock_ticks++;
 }
 
@@ -63,14 +62,10 @@ void delay_handler(ExceptionStackFrame *frame) {
     frame->regs[0] = ERROR;
     return;
   }
-  int current_ticks = clock_ticks;
 
-  while (clock_ticks - current_ticks <= num_ticks_to_wait) {
-    Pause();
-  }
-
-  if(num_ticks_to_wait == 0){
-    frame->regs[0] = 0;
-    return;
-  }
+  struct schedule_item *item = get_head();
+  struct process_control_block *pcb = item->pcb;
+  pcb.delay = num_ticks_to_wait;
+  frame->regs[0] = 0;
+  return;
 }
