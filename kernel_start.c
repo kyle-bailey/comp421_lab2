@@ -67,6 +67,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+  idle_pcb->delay = 0;
   // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
   prep_user_page_table(idle_pcb->page_table);
   add_pcb_to_schedule(idle_pcb);
@@ -77,6 +78,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
   init_pcb->pid = 0;
   init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+  init_pcb->delay = 0;
   prep_user_page_table(init_pcb->page_table);
   add_pcb_to_schedule(init_pcb);
 
