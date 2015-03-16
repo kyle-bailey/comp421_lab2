@@ -67,7 +67,6 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
-  idle_pcb->saved_context = malloc(sizeof(SavedContext));
   // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
   prep_user_page_table(idle_pcb->page_table);
   add_pcb_to_schedule(idle_pcb);
@@ -77,8 +76,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //creating init process - temp moved to here so we can use malloc
   struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
   init_pcb->pid = 0;
-  init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
-  init_pcb->saved_context = malloc(sizeof(SavedContext));
+  init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   prep_user_page_table(init_pcb->page_table);
   add_pcb_to_schedule(init_pcb);
 
@@ -104,7 +102,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   TracePrintf(2, "kernel_start: Idle process loaded.\n");
 
-  ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
+  ContextSwitch(idle_and_init_initialization, &idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
   WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);

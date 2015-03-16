@@ -12,7 +12,7 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
   // Flush the TLB for region 0.
   WriteRegister(REG_TLB_FLUSH, (RCS421RegVal)TLB_FLUSH_0);
 
-  return pcb2->saved_context;
+  return &pcb2->saved_context;
 }
 
 /**
@@ -71,5 +71,5 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   TracePrintf(1, "context_switch: idle_and_init_initialization completed.\n");
 
-  return pcb1->saved_context;  
+  return &pcb1->saved_context;  
 }

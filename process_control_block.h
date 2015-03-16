@@ -5,5 +5,5 @@ struct process_control_block
 {
   int pid;
   struct pte *page_table;
-  SavedContext *saved_context;
+  SavedContext saved_context;
 };
