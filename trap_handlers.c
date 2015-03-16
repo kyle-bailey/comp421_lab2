@@ -64,7 +64,7 @@ void delay_handler(ExceptionStackFrame *frame) {
 
   struct schedule_item *item = get_head();
   struct process_control_block *pcb = item->pcb;
-  pcb.delay = num_ticks_to_wait;
+  pcb->delay = num_ticks_to_wait;
   frame->regs[0] = 0;
   return;
 }
