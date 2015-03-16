@@ -1,4 +1,5 @@
 #include "memory_management.h"
+#include "page_table_management.h"
 
 //int array that keeps track of what pages are free (0 means free, 1 means occupied)
 int *is_physical_page_occupied = NULL;
@@ -8,8 +9,18 @@ int num_physical_pages;
 int virt_mem_initialized = 0;
 
 int SetKernelBrk(void *addr) {
+  int i;
   if(virt_mem_initialized) {
-    //more complicated stuff
+    int  num_pages_required = (long)UP_TO_PAGE(addr) - (long)kernel_brk;
+    if(num_free_physical_pages() < num_pages_required){
+      return -1;
+    } else {
+      for(i = 0; i < num_pages_required; i++){
+        unsigned int physical_page_number = acquire_free_physical_page();
+        kernel_page_table[(long)kernel_brk/PAGESIZE + i].valid = 1;
+        kernel_page_table[(long)kernel_brk/PAGESIZE + i].pfn = physical_page_number;
+      }
+    }
   } else {
     // SetKernelBrk should never be freeing a page we have already allocated.
     if ((long)addr <= (long)kernel_brk - PAGESIZE) {
