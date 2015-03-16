@@ -11,3 +11,4 @@ struct schedule_item * get_head();
 void move_head_to_tail();
 void decapitate();
 void add_pcb_to_schedule(struct process_control_block *pcb);
+void decrement_delays();

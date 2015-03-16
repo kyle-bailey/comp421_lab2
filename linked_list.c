@@ -37,3 +37,14 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
   new_item->next = head;
   head = new_item;
 }
+
+void
+decrement_delays() {
+  struct schedule_item *current = head;
+  while(current != NULL){
+    if(current->pcb.delay >0){
+      current->pcb.delay--;
+    }
+    current = current->next;
+  }
+}
