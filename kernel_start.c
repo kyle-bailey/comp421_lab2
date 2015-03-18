@@ -14,6 +14,12 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   int i;
 
+  int frame_page = (long)frame / PAGESIZE;
+  TracePrintf(2, "frame:%p\n", frame);
+  TracePrintf(2, "Page:%p\n", UP_TO_PAGE(frame));
+  TracePrintf(2, "Page Number:%p\n", UP_TO_PAGE(frame) / PAGESIZE);
+
+
   //initalize structure that keeps track of free pages
   init_is_physical_page_occupied(pmem_size);
 
