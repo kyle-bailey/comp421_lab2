@@ -1,4 +1,5 @@
 #include "linked_list.h"
+#include "process_control_block.h"
 
 struct schedule_item *head = NULL;
 
@@ -36,4 +37,17 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
   new_item->pcb = pcb;
   new_item->next = head;
   head = new_item;
+}
+
+void
+decrement_delays() {
+  struct schedule_item *current = head;
+  while(current != NULL){
+    struct process_control_block *pcb = current->pcb;
+
+    if(pcb->delay > 0){
+      pcb->delay--;
+    }
+    current = current->next;
+  }
 }

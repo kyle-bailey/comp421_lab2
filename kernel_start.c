@@ -6,11 +6,13 @@
 #include "page_table_management.h"
 #include "load_program.h"
 #include "context_switch.h"
+#include "linked_list.h"
+#include "process_control_block.h"
 
 void **interrupt_vector_table;
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
-  TracePrintf(1, "KernelStart called.\n");
+  TracePrintf(1, "kernel_start: KernelStart called.\n");
 
   int i;
 
@@ -23,7 +25,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //initalize structure that keeps track of free pages
   init_is_physical_page_occupied(pmem_size);
 
-  TracePrintf(2, "Free pages structure initialized.\n");
+  TracePrintf(2, "kernel_start: Free pages structure initialized.\n");
 
   //mark kernel stack as occupied
   occupy_pages_in_range((void *)KERNEL_STACK_BASE, (void *)KERNEL_STACK_LIMIT);
@@ -61,7 +63,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   //Initialize REG_VECTOR_BASE privileged machine register to point to table
   WriteRegister(REG_VECTOR_BASE, (RCS421RegVal)interrupt_vector_table);
 
-  TracePrintf(2, "Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
+  TracePrintf(2, "kernel_start: Interrupt vector table initialized. REG_VECTOR_BASE written to.\n");
 
   //Kernel Page Table initialzation
   init_kernel_page_table();
@@ -71,45 +73,56 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
-  idle_pcb->saved_context = malloc(sizeof(SavedContext));
-  prep_user_page_table(*idle_pcb->page_table);
+  idle_pcb->delay = 0;
+  // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
+  prep_user_page_table(idle_pcb->page_table);
   add_pcb_to_schedule(idle_pcb);
+
+  TracePrintf(2, "kernel_start: idle process pcb initialized.\n");
 
   //creating init process - temp moved to here so we can use malloc
   struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
   init_pcb->pid = 0;
-  init_pcb->page_table = malloc(PAGE_TABLE_SIZE); // this needs to change
-  init_pcb->saved_context = malloc(sizeof(SavedContext));
+  init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
+  init_pcb->delay = 0;
+  prep_user_page_table(init_pcb->page_table);
   add_pcb_to_schedule(init_pcb);
 
+  TracePrintf(2, "kernel_start: init process pcb initialized.\n");
+
   //Set PTR0 and PTR1 to point to physical address of starting pages
-  WriteRegister(REG_PTR0, (RCS421RegVal)user_page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)idle_pcb->page_table);
   WriteRegister(REG_PTR1, (RCS421RegVal)kernel_page_table);
 
-  TracePrintf(2, "Kernel and user page table pointers set.\n");
+  TracePrintf(2, "kernel_start: Kernel and user page table pointers set.\n");
 
   //Enable virtual memory
   WriteRegister(REG_VM_ENABLE, 1);
 
   virt_mem_initialized = 1;
 
-  TracePrintf(2, "Virtual memory enabled.\n");
+  TracePrintf(2, "kernel_start: Virtual memory enabled.\n");
 
   //load idle process
   char *loadargs[1];
   loadargs[0] = NULL;
   LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
-  TracePrintf(2, "Idle process loaded.\n");
+  TracePrintf(2, "kernel_start: Idle process loaded.\n");
 
-  ContextSwitch(idle_and_init_initialization, idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
+  ContextSwitch(idle_and_init_initialization, &idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
-  TracePrintf(2, "Initial context switch called.\n");
+  WriteRegister(REG_PTR0, (RCS421RegVal)init_pcb->page_table);
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
   //Load init process
-  LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
+  if (cmd_args[0] == NULL) {
+    LoadProgram("init", loadargs, frame, idle_pcb->page_table);
+  } else {
+    LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
+  }
 
-  TracePrintf(2, "Init process loaded.\n");
+  TracePrintf(2, "kernel_start: Init process loaded.\n");
 
 
 }

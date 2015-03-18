@@ -1,5 +1,8 @@
 #include "load_program.h"
 
+#include "memory_management.h"
+#include "page_table_management.h"
+
 /*
  *  Load a program into the current process's address space.  The
  *  program comes from the Unix file identified by "name", and its
@@ -21,10 +24,8 @@
  *  in this case.
  */
 int
-LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **page_table_to_load_ptr)
+LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *page_table_to_load)
 {
-    struct pte *page_table_to_load = *page_table_to_load_ptr;
-
     int fd;
     int status;
     struct loadinfo li;
@@ -40,6 +41,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
     int stack_npg;
 
     TracePrintf(0, "LoadProgram '%s', args %p\n", name, args);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+    
 
     if ((fd = open(name, O_RDONLY)) < 0) {
       TracePrintf(0, "LoadProgram: can't open file '%s'\n", name);
@@ -67,7 +70,11 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
     }
     TracePrintf(0, "text_size 0x%lx, data_size 0x%lx, bss_size 0x%lx\n",
     li.text_size, li.data_size, li.bss_size);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
     TracePrintf(0, "entry 0x%lx\n", li.entry);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Figure out how many bytes are needed to hold the arguments on
@@ -80,6 +87,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
     }
     argcount = i;
     TracePrintf(0, "LoadProgram: size %d, argcount %d\n", size, argcount);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Now save the arguments in a separate buffer in Region 1, since
@@ -112,6 +121,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
 
     TracePrintf(0, "LoadProgram: text_npg %d, data_bss_npg %d, stack_npg %d\n",
     text_npg, data_bss_npg, stack_npg);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Make sure we will leave at least one page between heap and stack
@@ -133,7 +144,7 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
      *  allocated to this process that will be freed.
      */
 
-    int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use_by_current_process();
+    int required_free_physical_pages = text_npg + data_bss_npg + stack_npg - num_pages_in_use(page_table_to_load);
 
     if (num_free_physical_pages() < required_free_physical_pages) {
       TracePrintf(0, "LoadProgram: program '%s' size too large for physical memory\n", name);
@@ -144,6 +155,10 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
 
     //Initialize sp for the current process to (char *)cpp.
     frame->sp = (char *)cpp;
+
+    TracePrintf(3, "LoadProgram: Stack Pointer Initialized.\n");
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Free all the old physical memory belonging to this process,
@@ -157,6 +172,10 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
         page_table_to_load[i].valid = 0;
       }
     }
+
+    TracePrintf(3, "LoadProgram: old physical memory belonging to process freed.\n");
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
 
     /*
      *  Fill in the page table with the right number of text,
@@ -182,10 +201,13 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
       }
     }
 
+    TracePrintf(3, "LoadProgram: Text and data&bss prepped.\n");
+
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
     //the user stack grows downwards from just below the kernel stack.
     //the last page of the user stack *ends* at virtual address USER_STACK_LIMIT
     int last_user_page = USER_STACK_LIMIT/PAGESIZE - 1;
-    TracePrintf(4, "Last User Page: %d\n", last_user_page);
     for (i = last_user_page; i > last_user_page - stack_npg; i--) {
         page_table_to_load[i].valid = 1;
         page_table_to_load[i].kprot = PROT_READ | PROT_WRITE;
@@ -193,12 +215,16 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
         page_table_to_load[i].pfn = acquire_free_physical_page();
     }
 
+    TracePrintf(3, "LoadProgram: User stack prepped.\n");
+
     /*
      *  All pages for the new address space are now in place.  Flush
      *  the TLB to get rid of all the old PTEs from this process, so
      *  we'll be able to do the read() into the new pages below.
      */
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
+    TracePrintf(3, "LoadProgram: Just finished flushing TLB.\n");
 
     /*
      *  Read the text and data from the file into memory.
@@ -212,6 +238,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
 
     close(fd);            /* we've read it all now */
 
+    TracePrintf(3, "LoadProgram: Dont reading text and data from file into memory.\n");
+
     /*
      *  Now set the page table entries for the program text to be readable
      *  and executable, but not writable.
@@ -219,6 +247,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
     for(i = MEM_INVALID_PAGES; i < text_npg + MEM_INVALID_PAGES; i++){
       page_table_to_load[i].kprot = PROT_READ | PROT_EXEC;
     }
+
+    TracePrintf(3, "LoadProgram: PTEs for program text modified.\n");
 
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
@@ -232,6 +262,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
      *  Set the entry point in the exception frame.
      */
     frame->pc = (void *)li.entry;
+
+    TracePrintf(3, "LoadProgram: Program Counter set.\n");
 
     /*
      *  Now, finally, build the argument list on the new stack.
@@ -259,6 +291,8 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte **pa
         frame->regs[i] = 0;
     }
     frame->psr = 0;
+
+    TracePrintf(1, "LoadProgram: LoadProgram completed.\n");
 
     return (0);
 }
