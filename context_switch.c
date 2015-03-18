@@ -39,7 +39,6 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
     for (j = MEM_INVALID_PAGES; j < KERNEL_STACK_BASE/PAGESIZE; j++) {
       // find the first available page from the user's heap.
-      TracePrintf(3, "context_switch: this is j: %d\n", j);
       if (process_1_page_table[j].valid == 0) {
         // temporarily map that page to a physical page.
         process_1_page_table[j].valid = 1;
