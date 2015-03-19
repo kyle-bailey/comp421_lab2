@@ -2,6 +2,8 @@
 
 #include "memory_management.h"
 #include "page_table_management.h"
+#include "linked_list.h"
+#include "process_control_block.h"
 
 /*
  *  Load a program into the current process's address space.  The
@@ -196,7 +198,7 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     //Set the brk for the current process
     struct schedule_item *item = get_head();
     struct process_control_block *pcb = item->pcb;
-    pcb->brk = UP_TO_PAGE((MEM_INVALID_PAGES + text_npg + data_bss_npg) * PAGESIZE);
+    pcb->brk = (void *)UP_TO_PAGE((MEM_INVALID_PAGES + text_npg + data_bss_npg) * PAGESIZE);
 
     TracePrintf(3, "LoadProgram: Text and data&bss prepped.\n");
 
@@ -211,7 +213,7 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
     }
 
     //initialize the user_stack_limit
-    pcb->user_stack_limit = DOWN_TO_PAGE(USER_STACK_LIMIT);
+    pcb->user_stack_limit = (void *)DOWN_TO_PAGE(USER_STACK_LIMIT);
 
     TracePrintf(3, "LoadProgram: User stack prepped.\n");
 

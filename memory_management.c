@@ -1,5 +1,7 @@
 #include "memory_management.h"
 #include "page_table_management.h"
+#include "linked_list.h"
+#include "process_control_block.h"
 
 //int array that keeps track of what pages are free (0 means free, 1 means occupied)
 int *is_physical_page_occupied = NULL;
@@ -34,7 +36,7 @@ int SetKernelBrk(void *addr) {
 
 void
 brk_handler(ExceptionStackFrame *frame){
-  void *addr = frame->regs[1];
+  void *addr = (void *)frame->regs[1];
 
   if(UP_TO_PAGE(addr) <= MEM_INVALID_SIZE){
     frame->regs[0] = ERROR;
