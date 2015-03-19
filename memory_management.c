@@ -35,6 +35,30 @@ int SetKernelBrk(void *addr) {
 void
 brk_handler(ExceptionStackFrame *frame){
   void *addr = frame->regs[1];
+
+  if(UP_TO_PAGE(addr) <= MEM_INVALID_SIZE){
+    frame->regs[0] = ERROR;
+    return;
+  }
+
+  struct schedule_item *item = get_head();
+  struct process_control_block *pcb = item->pcb;
+  void *brk = pcb->brk;
+  void *user_stack_limit = pcb->user_stack_limit;
+
+  if(UP_TO_PAGE(addr) >= DOWN_TO_PAGE(user_stack_limit) -1){
+    frame->regs[0] = ERROR;
+    return;
+  }
+
+  if(UP_TO_PAGE(addr) > UP_TO_PAGE(brk)){
+    
+  } else if(UP_TO_PAGE(addr) == UP_TO_PAGE(brk)){
+    frame->regs[0] = 0;
+    return;
+  } else {
+
+  }
 }
 
 void

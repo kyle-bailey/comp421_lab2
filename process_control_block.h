@@ -8,4 +8,5 @@ struct process_control_block
   SavedContext saved_context;
   int delay;
   void *brk;
+  void *user_stack_limit;
 };

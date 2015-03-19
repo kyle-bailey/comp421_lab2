@@ -193,6 +193,11 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
       }
     }
 
+    //Set the brk for the current process
+    struct schedule_item *item = get_head();
+    struct process_control_block *pcb = item->pcb;
+    pcb->brk = UP_TO_PAGE((MEM_INVALID_PAGES + text_npg + data_bss_npg) * PAGESIZE);
+
     TracePrintf(3, "LoadProgram: Text and data&bss prepped.\n");
 
     //the user stack grows downwards from just below the kernel stack.
@@ -204,6 +209,9 @@ LoadProgram(char *name, char **args, ExceptionStackFrame *frame, struct pte *pag
         page_table_to_load[i].uprot = PROT_READ | PROT_WRITE;
         page_table_to_load[i].pfn = acquire_free_physical_page();
     }
+
+    //initialize the user_stack_limit
+    pcb->user_stack_limit = DOWN_TO_PAGE(USER_STACK_LIMIT);
 
     TracePrintf(3, "LoadProgram: User stack prepped.\n");
 
