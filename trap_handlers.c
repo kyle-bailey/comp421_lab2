@@ -2,6 +2,7 @@
 
 #include "linked_list.h"
 #include "process_control_block.h"
+#include "memory_management.h"
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
@@ -14,6 +15,9 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
   } else if (frame->code == YALNIX_DELAY) {
     TracePrintf(1, "Delay requested.\n");
     delay_handler(frame);
+  } else if (frame->code == YALNIX_BRK) {
+    TracePrintf(1, "Brk requested.\n");
+    brk_handler(frame);
   }
 }
 

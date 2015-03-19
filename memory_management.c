@@ -33,6 +33,11 @@ int SetKernelBrk(void *addr) {
 }
 
 void
+brk_handler(ExceptionStackFrame *frame){
+  void *addr = frame->regs[1];
+}
+
+void
 occupy_kernel_pages_up_to(void *end) {
   if(is_physical_page_occupied != NULL){
     occupy_pages_in_range(kernel_brk, end);
