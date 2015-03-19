@@ -7,4 +7,5 @@ struct process_control_block
   struct pte *page_table;
   SavedContext saved_context;
   int delay;
+  void *brk;
 };
