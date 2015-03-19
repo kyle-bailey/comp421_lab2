@@ -13,7 +13,7 @@ int virt_mem_initialized = 0;
 int SetKernelBrk(void *addr) {
   int i;
   if(virt_mem_initialized) {
-    int  num_pages_required = (long)UP_TO_PAGE(addr) - (long)kernel_brk;
+    int  num_pages_required = ((long)UP_TO_PAGE(addr) - (long)kernel_brk)/PAGESIZE;
     if(num_free_physical_pages() < num_pages_required){
       return -1;
     } else {
@@ -37,6 +37,7 @@ int SetKernelBrk(void *addr) {
 void
 brk_handler(ExceptionStackFrame *frame){
   void *addr = (void *)frame->regs[1];
+  int i;
 
   if(UP_TO_PAGE(addr) <= MEM_INVALID_SIZE){
     frame->regs[0] = ERROR;
@@ -47,6 +48,7 @@ brk_handler(ExceptionStackFrame *frame){
   struct process_control_block *pcb = item->pcb;
   void *brk = pcb->brk;
   void *user_stack_limit = pcb->user_stack_limit;
+  struct pte *user_page_table = pcb->page_table;
 
   if(UP_TO_PAGE(addr) >= DOWN_TO_PAGE(user_stack_limit) -1){
     frame->regs[0] = ERROR;
@@ -54,13 +56,29 @@ brk_handler(ExceptionStackFrame *frame){
   }
 
   if(UP_TO_PAGE(addr) > UP_TO_PAGE(brk)){
-    
-  } else if(UP_TO_PAGE(addr) == UP_TO_PAGE(brk)){
-    frame->regs[0] = 0;
-    return;
-  } else {
 
+    int num_pages_required = ((long)UP_TO_PAGE(addr) - (long)UP_TO_PAGE(brk))/PAGESIZE;
+    if(num_free_physical_pages() < num_pages_required){
+      frame->regs[0] = ERROR;
+      return;
+    } else {
+      for(i = 0; i < num_pages_required; i++){
+        unsigned int physical_page_number = acquire_free_physical_page();
+        user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].valid = 1;
+        user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].pfn = physical_page_number;
+      }
+    }
+  } else if(UP_TO_PAGE(addr) < UP_TO_PAGE(brk)){
+    int num_pages_to_free = ((long)UP_TO_PAGE(brk) - (long)UP_TO_PAGE(addr))/PAGESIZE;
+    for(i = 0; i < num_pages_to_free; i++){
+      user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE - i].valid = 0;
+      int physical_page_number = user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE - i].pfn;
+      free_physical_page(physical_page_number);
+    }
   }
+
+  frame->regs[0] = 0;
+  pcb->brk = UP_TO_PAGE(addr);
 }
 
 void
