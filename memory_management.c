@@ -78,7 +78,7 @@ brk_handler(ExceptionStackFrame *frame){
   }
 
   frame->regs[0] = 0;
-  pcb->brk = UP_TO_PAGE(addr);
+  pcb->brk = (void *)UP_TO_PAGE(addr);
 }
 
 void
