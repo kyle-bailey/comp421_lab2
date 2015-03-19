@@ -58,6 +58,13 @@ void getpid_handler(ExceptionStackFrame *frame) {
   frame->regs[0] = pid;
 }
 
+/*
+ * Process:
+ * 1. Set the delay inside the current process's pcb
+ * 2. call move_head_to_tail() to move current process to the end of the schedule
+ * 3. call select_next_process() to move the next process to be run to the head
+ * 4. context switch from currently running process to that next process
+ */
 void delay_handler(ExceptionStackFrame *frame) {
   int num_ticks_to_wait = frame->regs[1];
   
@@ -67,8 +74,17 @@ void delay_handler(ExceptionStackFrame *frame) {
   }
 
   struct schedule_item *item = get_head();
-  struct process_control_block *pcb = item->pcb;
-  pcb->delay = num_ticks_to_wait;
+  struct process_control_block *current_pcb = item->pcb;
+  current_pcb->delay = num_ticks_to_wait;
+
+  move_head_to_tail();
+  select_next_process();
+
+  item = get_head();
+  struct process_control_block *next_pcb = item->pcb;
+
+  ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
+
   frame->regs[0] = 0;
   return;
 }

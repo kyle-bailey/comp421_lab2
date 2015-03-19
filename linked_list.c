@@ -10,6 +10,9 @@ get_head() {
 
 void
 move_head_to_tail() {
+  if(head->next == NULL){
+    return;
+  }
   if(head != NULL){
     struct schedule_item *current = head;
     struct schedule_item *new_head = head->next;
@@ -19,6 +22,34 @@ move_head_to_tail() {
     current->next = head;
     head = new_head;
   }
+}
+
+/* 
+ * Selects the next schedule item who's pcb->delay is 0, and moves it to the head of the list
+* This process assumes that if we are context switching, move_head_to_tail() has already been called
+ */
+void
+select_next_process(){
+  struct schedule_item *current = head;
+  struct schedule_item *previous = NULL;
+
+  while(current != NULL){
+    struct process_control_block *pcb = current->pcb;
+    if(pcb->delay == 0){
+      if(previous == NULL){
+        return;
+      } else {
+        previous->next = current->next;
+        current->next = head;
+        head = current;
+        return;
+      }
+    } else {
+      previous = current;
+      current = current->next;
+    }
+  }
+  Halt(); //ERROR: we iterated through all processes and they all had delays
 }
 
 void
