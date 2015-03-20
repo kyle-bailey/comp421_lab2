@@ -7,6 +7,9 @@
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 
+#define SCHEDULE_DELAY  2
+int time_till_switch = SCHEDULE_DELAY;
+
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
   if(frame->code == YALNIX_GETPID){
@@ -15,6 +18,7 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
   } else if (frame->code == YALNIX_DELAY) {
     TracePrintf(1, "Delay requested.\n");
     delay_handler(frame);
+    return;
   } else if (frame->code == YALNIX_BRK) {
     TracePrintf(1, "Brk requested.\n");
     brk_handler(frame);
@@ -23,7 +27,12 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
+  time_till_switch--;
   decrement_delays();
+  if(time_till_switch == 0){
+    time_till_switch = SCHEDULE_DELAY;
+    schedule_processes();
+  }
 }
 
 void illegal_trap_handler (ExceptionStackFrame *frame) {
@@ -58,6 +67,13 @@ void getpid_handler(ExceptionStackFrame *frame) {
   frame->regs[0] = pid;
 }
 
+/*
+ * Process:
+ * 1. Set the delay inside the current process's pcb
+ * 2. call move_head_to_tail() to move current process to the end of the schedule
+ * 3. call select_next_process() to move the next process to be run to the head
+ * 4. context switch from currently running process to that next process
+ */
 void delay_handler(ExceptionStackFrame *frame) {
   int num_ticks_to_wait = frame->regs[1];
   
@@ -67,8 +83,12 @@ void delay_handler(ExceptionStackFrame *frame) {
   }
 
   struct schedule_item *item = get_head();
-  struct process_control_block *pcb = item->pcb;
-  pcb->delay = num_ticks_to_wait;
+  struct process_control_block *current_pcb = item->pcb;
+  current_pcb->delay = num_ticks_to_wait;
+
   frame->regs[0] = 0;
+  if(num_ticks_to_wait > 0){
+    schedule_processes();
+  }
   return;
 }

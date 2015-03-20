@@ -115,5 +115,4 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   TracePrintf(2, "kernel_start: Init process loaded.\n");
 
-
 }
