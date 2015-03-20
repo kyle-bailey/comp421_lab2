@@ -7,6 +7,9 @@
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 
+#define SCHEDULE_DELAY  2
+int time_till_switch = SCHEDULE_DELAY;
+
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
   if(frame->code == YALNIX_GETPID){
@@ -15,6 +18,7 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
   } else if (frame->code == YALNIX_DELAY) {
     TracePrintf(1, "Delay requested.\n");
     delay_handler(frame);
+    return;
   } else if (frame->code == YALNIX_BRK) {
     TracePrintf(1, "Brk requested.\n");
     brk_handler(frame);
@@ -23,7 +27,12 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
+  time_till_switch--;
   decrement_delays();
+  if(time_till_switch == 0){
+    time_till_switch = SCHEDULE_DELAY;
+    schedule_processes();
+  }
 }
 
 void illegal_trap_handler (ExceptionStackFrame *frame) {
@@ -77,14 +86,9 @@ void delay_handler(ExceptionStackFrame *frame) {
   struct process_control_block *current_pcb = item->pcb;
   current_pcb->delay = num_ticks_to_wait;
 
-  move_head_to_tail();
-  select_next_process();
-
-  item = get_head();
-  struct process_control_block *next_pcb = item->pcb;
-
-  ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
-
   frame->regs[0] = 0;
+  if(num_ticks_to_wait > 0){
+    schedule_processes();
+  }
   return;
 }

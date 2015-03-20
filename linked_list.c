@@ -52,6 +52,24 @@ select_next_process(){
   Halt(); //ERROR: we iterated through all processes and they all had delays
 }
 
+/* 
+ * Called when we want to context switch after the current process has been running for two clock ticks
+ * Moves current process to the end of the list, selects the next process, and context switches
+ */
+void
+schedule_processes() {
+  struct schedule_item *item = get_head();
+  struct process_control_block *current_pcb = item->pcb;
+
+  move_head_to_tail();
+  select_next_process();
+
+  item = get_head();
+  struct process_control_block *next_pcb = item->pcb;
+
+  ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
+}
+
 void
 decapitate() {
   if(head != NULL){
