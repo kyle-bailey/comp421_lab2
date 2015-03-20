@@ -71,6 +71,9 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
     }
   }
 
+  WriteRegister(REG_PTR0, (RCS421RegVal)process_2_page_table);
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
   TracePrintf(1, "context_switch: idle_and_init_initialization completed.\n");
 
   return &pcb1->saved_context;  
