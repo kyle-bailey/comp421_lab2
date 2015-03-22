@@ -4,6 +4,8 @@
 #include "process_control_block.h"
 #include "context_switch.h"
 
+#define IDLE_PID 1
+
 struct schedule_item *head = NULL;
 
 struct schedule_item *
@@ -65,13 +67,19 @@ schedule_processes() {
   struct schedule_item *item = get_head();
   struct process_control_block *current_pcb = item->pcb;
 
-  move_head_to_tail();
-  select_next_process();
+  // if idle is at the head, make sure that there is something to switch to. If there isn't, we
+  // don't need to context switch.
+  if (current_pcb->pid != 1 || can_idle_switch()) { 
+    move_head_to_tail();
+    select_next_process();
 
-  item = get_head();
-  struct process_control_block *next_pcb = item->pcb;
+    item = get_head();
+    struct process_control_block *next_pcb = item->pcb;
 
-  ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
+    TracePrintf(3, "linked_list: %p, %p\n", current_pcb, next_pcb);
+
+    ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
+  }
 }
 
 void
@@ -109,6 +117,20 @@ decrement_delays() {
 
     current = current->next;
   }
+}
 
-  TracePrintf(3, "linked_list: leaving decrement_delays\n");
+int
+can_idle_switch() {
+  struct schedule_item *current = head->next;
+  while (current != NULL) {
+    struct process_control_block *pcb = current->pcb;
+
+    if (pcb->delay == 0) {
+      return 1;
+    }
+
+    current = current->next;
+  }
+
+  return 0;
 }

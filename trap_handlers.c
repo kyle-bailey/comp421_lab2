@@ -22,7 +22,11 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
   } else if (frame->code == YALNIX_BRK) {
     TracePrintf(1, "Brk requested.\n");
     brk_handler(frame);
+  } else if (frame->code == YALNIX_EXIT) {
+    
   }
+
+  TracePrintf(3, "trap_handlers: TRAP_KERNEL code we don't understand: %d\n", frame->code);
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
