@@ -88,6 +88,7 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
   struct schedule_item *new_item = malloc(sizeof(struct schedule_item));
   new_item->pcb = pcb;
   new_item->next = head;
+  TracePrintf(2, "new_item->next : %p\n", new_item->next);
   head = new_item;
 }
 
