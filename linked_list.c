@@ -22,6 +22,7 @@ move_head_to_tail() {
     while(current->next != NULL){
       current = current->next;
     }
+    head->next = NULL;
     current->next = head;
     head = new_head;
   }
@@ -88,8 +89,11 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
   struct schedule_item *new_item = malloc(sizeof(struct schedule_item));
   new_item->pcb = pcb;
   new_item->next = head;
-  TracePrintf(2, "new_item->next : %p\n", new_item->next);
   head = new_item;
+  TracePrintf(2, "new_item->next : %p\n", new_item->next);
+  if (new_item->next != NULL) {
+    TracePrintf(2, "new_item->next->next : %p\n", new_item->next->next);
+  }
 }
 
 void
@@ -102,7 +106,9 @@ decrement_delays() {
     if(pcb->delay > 0){
       pcb->delay--;
     }
+
     current = current->next;
   }
-  TracePrintf(2, "Decrementing delays finished.\n");
+
+  TracePrintf(3, "linked_list: leaving decrement_delays\n");
 }

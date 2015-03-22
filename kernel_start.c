@@ -107,6 +107,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   ContextSwitch(idle_and_init_initialization, &idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
+  TracePrintf(3, "kernel_start: before load program: %p->%p->%p\n", get_head(), get_head()->next, get_head()->next->next);
+
   //Load init process
   if(is_init == 1){
     is_init = 0;
@@ -116,6 +118,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
       LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
     }
   }
+
+  TracePrintf(3, "kernel_start: before load program: %p->%p->%p\n", get_head(), get_head()->next, get_head()->next->next);
 
   TracePrintf(2, "kernel_start: Init process loaded.\n");
 
