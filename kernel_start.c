@@ -108,8 +108,10 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   //Load init process
   if (cmd_args[0] == NULL) {
+    TracePrintf(2, "kernel_start: Calling load program to load init\n");
     LoadProgram("init", loadargs, frame, init_pcb->page_table);
   } else {
+    TracePrintf(2, "kernel_start: Calling load program to load init\n");
     LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
   }
 
