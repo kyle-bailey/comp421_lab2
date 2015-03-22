@@ -5,7 +5,7 @@
 int
 main() {
   printf("Init Process Initialized.\n");
-  printf("%d\n", GetPid());
+  printf("PID: %d\n", GetPid());
 
   printf("Doing Delay now...");
 

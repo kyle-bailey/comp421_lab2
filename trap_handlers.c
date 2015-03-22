@@ -95,6 +95,7 @@ void delay_handler(ExceptionStackFrame *frame) {
 
   frame->regs[0] = 0;
   if(num_ticks_to_wait > 0){
+    TracePrintf(1, "Delay is causing a context switch\n");
     schedule_processes();
   }
   return;
