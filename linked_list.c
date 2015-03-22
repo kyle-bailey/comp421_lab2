@@ -6,6 +6,8 @@
 
 #define IDLE_PID 1
 
+int can_idle_switch();
+
 struct schedule_item *head = NULL;
 
 struct schedule_item *
@@ -87,6 +89,7 @@ decapitate() {
   if(head != NULL){
     struct schedule_item *temp = head;
     head = head->next;
+    free(temp->pcb->page_table);
     free(temp->pcb);
     free(temp);
   }
