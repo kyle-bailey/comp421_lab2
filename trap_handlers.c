@@ -27,6 +27,13 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
+  //TESTING
+  struct schedule_item *item = get_head();
+  struct process_control_block *pcb = item->pcb;
+  TracePrintf(1, "TRAP CLOCK with PID: %d\n", pcb->pid);
+  //TESTING
+
+
   time_till_switch--;
   decrement_delays();
   if(time_till_switch == 0){
