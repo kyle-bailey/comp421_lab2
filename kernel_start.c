@@ -10,6 +10,7 @@
 #include "process_control_block.h"
 
 void **interrupt_vector_table;
+int is_init = 1;
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
   TracePrintf(1, "kernel_start: KernelStart called.\n");
@@ -107,12 +108,13 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   ContextSwitch(idle_and_init_initialization, &idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 
   //Load init process
-  if (cmd_args[0] == NULL) {
-    TracePrintf(2, "kernel_start: Calling load program to load init\n");
-    LoadProgram("init", loadargs, frame, init_pcb->page_table);
-  } else {
-    TracePrintf(2, "kernel_start: Calling load program to load init\n");
-    LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
+  if(is_init == 1){
+    is_init = 0;
+    if (cmd_args[0] == NULL) {
+      LoadProgram("init", loadargs, frame, init_pcb->page_table);
+    } else {
+      LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
+    }
   }
 
   TracePrintf(2, "kernel_start: Init process loaded.\n");
