@@ -6,6 +6,8 @@
 
 #define IDLE_PID 1
 
+int can_idle_switch();
+
 struct schedule_item *head = NULL;
 
 struct schedule_item *
