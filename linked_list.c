@@ -93,6 +93,7 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
 
 void
 decrement_delays() {
+  TracePrintf(2, "Starting to decrement delays.\n");
   struct schedule_item *current = head;
   while(current != NULL){
     struct process_control_block *pcb = current->pcb;
@@ -102,4 +103,5 @@ decrement_delays() {
     }
     current = current->next;
   }
+  TracePrintf(2, "Decrementing delays finished.\n");
 }
