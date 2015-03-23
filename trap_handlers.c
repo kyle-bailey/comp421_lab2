@@ -40,7 +40,6 @@ void clock_trap_handler (ExceptionStackFrame *frame) {
   time_till_switch--;
   decrement_delays();
   if(time_till_switch == 0){
-    time_till_switch = SCHEDULE_DELAY;
     schedule_processes();
   }
 }
@@ -136,4 +135,9 @@ void exit_handler(ExceptionStackFrame *frame) {
   schedule_processes();
 
   TracePrintf(3, "trap_handlers: %p\n", get_head()->next);
+}
+
+void
+reset_time_till_switch() {
+  time_till_switch = SCHEDULE_DELAY;
 }

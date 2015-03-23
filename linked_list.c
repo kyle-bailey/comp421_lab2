@@ -3,6 +3,7 @@
 #include "linked_list.h"
 #include "process_control_block.h"
 #include "context_switch.h"
+#include "trap_handlers.h"
 
 #define IDLE_PID 1
 
@@ -79,6 +80,8 @@ schedule_processes() {
     struct process_control_block *next_pcb = item->pcb;
 
     ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
+
+    reset_time_till_switch();
   }
 }
 
@@ -98,6 +101,8 @@ schedule_processes_during_decapitate() {
   struct process_control_block *next_pcb = next_head->pcb;
 
   ContextSwitch(context_switch_helper, &old_head_pcb->saved_context, (void *)old_head_pcb, (void *)next_pcb);
+
+  reset_time_till_switch();
 }
 
 void

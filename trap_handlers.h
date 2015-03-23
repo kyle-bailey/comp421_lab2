@@ -14,3 +14,5 @@ void math_trap_handler (ExceptionStackFrame *frame);
 void tty_recieve_trap_handler (ExceptionStackFrame *frame);
 
 void tty_transmit_trap_handler (ExceptionStackFrame *frame);
+
+void reset_time_till_switch();
