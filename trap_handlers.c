@@ -6,35 +6,37 @@
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
+void exit_handler(ExceptionStackFrame *frame);
 
 #define SCHEDULE_DELAY  2
 int time_till_switch = SCHEDULE_DELAY;
 
 void kernel_trap_handler(ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_KERNEL interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_KERNEL interrupt handler...\n");
   if(frame->code == YALNIX_GETPID){
-    TracePrintf(1, "GetPid requested.\n");
+    TracePrintf(1, "trap_handlers: GetPid requested.\n");
     getpid_handler(frame);
   } else if (frame->code == YALNIX_DELAY) {
-    TracePrintf(1, "Delay requested.\n");
+    TracePrintf(1, "trap_handlers: Delay requested.\n");
     delay_handler(frame);
     return;
   } else if (frame->code == YALNIX_BRK) {
-    TracePrintf(1, "Brk requested.\n");
+    TracePrintf(1, "trap_handlers: Brk requested.\n");
     brk_handler(frame);
   } else if (frame->code == YALNIX_EXIT) {
-    
+    TracePrintf(1, "trap_handlers: Exit requested.\n");
+    exit_handler(frame);
   }
 
   TracePrintf(3, "trap_handlers: TRAP_KERNEL code we don't understand: %d\n", frame->code);
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_CLOCK interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_CLOCK interrupt handler...\n");
   //TESTING
   struct schedule_item *item = get_head();
   struct process_control_block *pcb = item->pcb;
-  TracePrintf(1, "TRAP CLOCK with PID: %d\n", pcb->pid);
+  TracePrintf(1, "trap_handlers: TRAP CLOCK with PID: %d\n", pcb->pid);
   //TESTING
 
   time_till_switch--;
@@ -46,27 +48,27 @@ void clock_trap_handler (ExceptionStackFrame *frame) {
 }
 
 void illegal_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_ILLEGAL interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_ILLEGAL interrupt handler...\n");
   Halt();
 }
 
 void memory_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_MEMORY interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_MEMORY interrupt handler...\n");
   Halt();
 }
 
 void math_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_MATH interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_MATH interrupt handler...\n");
   Halt();
 }
 
 void tty_recieve_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_TTY_RECEIVE interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_TTY_RECEIVE interrupt handler...\n");
   Halt();
 }
 
 void tty_transmit_trap_handler (ExceptionStackFrame *frame) {
-  TracePrintf(1, "Entering TRAP_TTY_TRANSMIT interrupt handler...\n");
+  TracePrintf(1, "trap_handlers: Entering TRAP_TTY_TRANSMIT interrupt handler...\n");
   Halt();
 }
 
@@ -98,8 +100,12 @@ void delay_handler(ExceptionStackFrame *frame) {
 
   frame->regs[0] = 0;
   if(num_ticks_to_wait > 0){
-    TracePrintf(1, "Delay is causing a context switch\n");
+    TracePrintf(1, "trap_handlers: Delay is causing a context switch\n");
     schedule_processes();
   }
   return;
+}
+
+void exit_handler(ExceptionStackFrame *frame) {
+  
 }
