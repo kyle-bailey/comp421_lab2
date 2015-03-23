@@ -122,12 +122,14 @@ void delay_handler(ExceptionStackFrame *frame) {
 }
 
 void exit_handler(ExceptionStackFrame *frame) {
-  int status = frame->regs[1];
+  int exit_status = frame->regs[1];
 
-  int is_not_orphan = 1;
+  if (!is_current_process_orphan()) {
+    struct schedule_item *current = get_head();
 
-  if (is_not_orphan) {
-    // save status
+    struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
+
+    add_child_exit_status(parent_pcb, exit_status);
   }
 
   decapitate();
