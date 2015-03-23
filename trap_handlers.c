@@ -27,8 +27,6 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
     TracePrintf(1, "trap_handlers: Exit requested.\n");
     exit_handler(frame);
   }
-
-  TracePrintf(3, "trap_handlers: TRAP_KERNEL code we don't understand: %d\n", frame->code);
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
@@ -107,5 +105,17 @@ void delay_handler(ExceptionStackFrame *frame) {
 }
 
 void exit_handler(ExceptionStackFrame *frame) {
-  
+  int status = frame->regs[1];
+
+  int is_not_orphan = 1;
+
+  if (is_not_orphan) {
+    // save status
+  }
+
+  decapitate();
+
+  schedule_processes();
+
+  TracePrintf(3, "trap_handlers: %p\n", get_head()->next);
 }
