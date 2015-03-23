@@ -23,4 +23,4 @@ struct process_control_block
 
 struct exit_status_node *get_next_child_exit_status_node(struct process_control_block *pcb);
 
-void add_child_exit_status_node(struct process_control_block *pcb, int exit_status);
+void add_child_exit_status(struct process_control_block *pcb, int exit_status);

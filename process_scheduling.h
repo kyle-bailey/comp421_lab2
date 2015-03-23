@@ -21,6 +21,6 @@ void add_pcb_to_schedule(struct process_control_block *pcb);
 
 void decrement_delays();
 
-int is_current_proccess_orphan();
+int is_current_process_orphan();
 
 struct process_control_block *get_pcb_by_pid(int pid);
