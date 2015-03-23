@@ -62,7 +62,8 @@ brk_handler(ExceptionStackFrame *frame){
       frame->regs[0] = ERROR;
       return;
     } else {
-      for(i = 0; i < num_pages_required; i++){
+      TracePrintf(3, "memory_management: preparing to acquire %d physical pages\n", num_pages_required);
+      for(i = 0; i < num_pages_required; i++) {
         unsigned int physical_page_number = acquire_free_physical_page();
         user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].valid = 1;
         user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].pfn = physical_page_number;
@@ -70,6 +71,8 @@ brk_handler(ExceptionStackFrame *frame){
     }
   } else if(UP_TO_PAGE(addr) < UP_TO_PAGE(brk)){
     int num_pages_to_free = ((long)UP_TO_PAGE(brk) - (long)UP_TO_PAGE(addr))/PAGESIZE;
+  
+    TracePrintf(3, "memory_management: preparing to free %d physical pages\n", num_pages_to_free);
     for(i = 0; i < num_pages_to_free; i++){
       user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE - i].valid = 0;
       int physical_page_number = user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE - i].pfn;
@@ -79,6 +82,8 @@ brk_handler(ExceptionStackFrame *frame){
 
   frame->regs[0] = 0;
   pcb->brk = (void *)UP_TO_PAGE(addr);
+
+  TracePrintf(1, "memory_management: brk_handler finished\n");
 }
 
 void

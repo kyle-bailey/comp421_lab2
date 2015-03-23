@@ -1,15 +1,29 @@
 #include <stdio.h>
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
+#include <strings.h>
+#include <stdlib.h>
 
 int
 main() {
   printf("Init Process Initialized.\n");
   printf("PID: %d\n", GetPid());
 
-  printf("Doing Delay now...");
+  printf("Size of a char: %lu\n", sizeof(char));
 
-  Delay(5);
+  char *bigstring = malloc(sizeof(char) * 2049);
+
+  printf("bigstring ptr: %p\n", bigstring);
+
+  bigstring[0] = 'h';
+  bigstring[1] = 'i';
+  bigstring[2] = '\0';
+
+  printf("%s\n", bigstring);
+
+  free(bigstring);
+
+  printf("we freed willy: %p\n", bigstring);
 
   return 0;
 }

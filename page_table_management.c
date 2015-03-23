@@ -42,7 +42,7 @@ prep_user_page_table(struct pte *page_table){
     } else {
       page_table[i].valid = 0;
       page_table[i].kprot = PROT_NONE;
-      page_table[i].uprot = PROT_READ | PROT_EXEC;
+      page_table[i].uprot = PROT_READ | PROT_WRITE | PROT_EXEC;
     }
     page_table[i].pfn = i;
   }

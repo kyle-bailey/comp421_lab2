@@ -52,6 +52,24 @@ void illegal_trap_handler (ExceptionStackFrame *frame) {
 
 void memory_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_MEMORY interrupt handler...\n");
+
+  int code = frame->code;
+
+  switch (code) {
+    case TRAP_MEMORY_MAPERR:
+      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: No mapping at a virtual address\n");
+      break;
+    case SEGV_ACCERR:
+      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Protection violation at a virtual address\n");
+      break;
+    case SI_KERNEL:
+      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Linux kernel sent SIGSEGV at virtual address\n");
+      break;
+    case SI_USER:
+      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Received SIGSEGV from user\n");
+      break;
+  }
+
   Halt();
 }
 
