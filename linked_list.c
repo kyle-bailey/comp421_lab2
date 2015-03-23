@@ -78,20 +78,50 @@ schedule_processes() {
     item = get_head();
     struct process_control_block *next_pcb = item->pcb;
 
-    TracePrintf(3, "linked_list: %p, %p\n", current_pcb, next_pcb);
-
     ContextSwitch(context_switch_helper, &current_pcb->saved_context, (void *)current_pcb, (void *)next_pcb);
   }
 }
 
 void
+schedule_processes_during_decapitate() {
+  // if idle is at the head, make sure that there is something to switch to. If there isn't, we
+  // don't need to context switch.
+  struct schedule_item *old_head = get_head();
+  struct process_control_block *old_head_pcb = old_head->pcb;
+
+  // we don't want to include the old head in the selection process.
+  head = old_head->next;
+
+  select_next_process();
+
+  struct schedule_item *next_head = get_head();
+  struct process_control_block *next_pcb = next_head->pcb;
+
+  ContextSwitch(context_switch_helper, &old_head_pcb->saved_context, (void *)old_head_pcb, (void *)next_pcb);
+}
+
+void
 decapitate() {
-  if(head != NULL){
-    struct schedule_item *temp = head;
-    head = head->next;
-    free(temp->pcb);
-    free(temp);
+  struct schedule_item *current = get_head();
+  
+  if (current == NULL) {
+    TracePrintf(0, "linked_list: You are trying to decapitate when there are no processes.\n");
+    Halt();    
   }
+
+  struct process_control_block *current_pcb = current->pcb;
+
+  if (current_pcb->pid == IDLE_PID) {
+    TracePrintf(0, "linked_list: You are trying to decapitate with idle as head.\n");
+    Halt();
+  }
+
+  schedule_processes_during_decapitate();
+
+  free(current->pcb->page_table);
+  free(current->pcb);
+  free(current);
+
 }
 
 void
