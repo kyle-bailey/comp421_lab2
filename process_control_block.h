@@ -1,6 +1,14 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
 
+#define ORPHAN_PARENT_PID -1;
+
+struct exit_status_node
+{
+  int exit_status;
+  struct exit_status_node *next;
+};
+
 struct process_control_block
 {
   int pid;
@@ -9,4 +17,10 @@ struct process_control_block
   int delay;
   void *brk;
   void *user_stack_limit;
+  struct exit_status_node *exit_status_queue;
+  int parent_pid;
 };
+
+struct exit_status_node *get_next_child_exit_status_node(struct process_control_block *pcb);
+
+void add_child_exit_status_node(struct process_control_block *pcb, int exit_status);

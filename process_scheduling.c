@@ -171,3 +171,30 @@ can_idle_switch() {
 
   return 0;
 }
+
+int
+is_current_process_orphan() {
+  struct schedule_item *head = get_head();
+
+  // ORPHAN_PARENT_PID defined in process_control_block.h
+  return head->pcb->parent_pid == ORPHAN_PARENT_PID;
+}
+
+struct process_control_block *
+get_pcb_by_pid(int pid) {
+  struct schedule_item *current = get_head();
+
+  if (current == NULL) {
+    return NULL;
+  }
+
+  while (current->next != NULL) {
+    if (current->pcb->pid == pid) {
+      return current->pcb;
+    }
+
+    current = current->next;
+  }
+
+  return NULL;
+}
