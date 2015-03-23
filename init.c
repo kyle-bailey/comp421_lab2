@@ -11,7 +11,7 @@ main() {
 
   printf("Size of a char: %lu\n", sizeof(char));
 
-  char *bigstring = malloc(sizeof(char) * 2049);
+  char *bigstring = malloc(sizeof(char) * 4096);
 
   printf("bigstring ptr: %p\n", bigstring);
 
@@ -24,6 +24,8 @@ main() {
   free(bigstring);
 
   printf("we freed willy: %p\n", bigstring);
+
+  Brk((void *)0x1e008);
 
   return 0;
 }
