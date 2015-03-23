@@ -6,7 +6,7 @@
 #include "page_table_management.h"
 #include "load_program.h"
 #include "context_switch.h"
-#include "linked_list.h"
+#include "process_scheduling.h"
 #include "process_control_block.h"
 
 void **interrupt_vector_table;

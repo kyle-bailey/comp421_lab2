@@ -1,6 +1,6 @@
 #include "memory_management.h"
 #include "page_table_management.h"
-#include "linked_list.h"
+#include "process_scheduling.h"
 #include "process_control_block.h"
 
 //int array that keeps track of what pages are free (0 means free, 1 means occupied)
