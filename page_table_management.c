@@ -88,6 +88,12 @@ create_page_table() {
     } else {
       current = current->next;
     }
+
+    // if we reach the end of the page table records, and we find a dead record at the end, we can remove it.
+    if (current->is_top_full && current->is_bottom_full && current->next == NULL) {
+      free_physical_page((long)current->page_base/PAGESIZE);
+      free(current);
+    }
   }
 
   TracePrintf(3, "page_table_management: Creating new page table record\n");
@@ -101,14 +107,35 @@ void free_page_table(struct pte *page_table_to_free) {
   TracePrintf(0, "page_table_management: Beginning free_page_table\n");
   
   // figure out which page base this page table uses.
+  void *page_base = (void *)DOWN_TO_PAGE(page_table_to_free);
 
   // find the entry in the page_table_records that belongs to that page base.
-  // if it's not found, print a message and maybe halt.
+  struct page_table_record *current = get_first_page_table_record();
+  while (current != NULL) {
+    if (current->page_base == page_base) {
+      // change the value of is_top_full or is_bottom_full to 0, depending on page_table_to_free's address to 0.
+      if ((void *)page_table_to_free == page_base) {
+        current->is_bottom_full = 0;
+      } else {
+        current->is_top_full = 0;
+      }
 
-  // change the value of is_top_full or is_bottom_full, depending on page_table_to_free's address to 0.
+      // if both is_top_full and is_bottom_full are 0 and current->next is NULL,
+      // you can free the physical page at page_base/PAGESIZE and free(page table record)
+      if (current->is_top_full && current->is_bottom_full && current->next == NULL) {
+        free_physical_page((long)page_base/PAGESIZE);
+        free(current);
+      }
 
-  // if both is_top_full and is_bottom_full are 0 and current->next is NULL,
-  // you can free the physical page at page_base/PAGESIZE and free(page table record)
+      return;
+    }
+
+    current = current->next;
+  }
+
+  // if it's not found, print a message and halt.
+  TracePrintf(0, "page_table_management: free_page_table was called on a page table that is not in a page table record!\n");
+  Halt();
 }
 
 //Kernel Page Table initialzation
