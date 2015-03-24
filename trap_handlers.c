@@ -39,7 +39,10 @@ void clock_trap_handler (ExceptionStackFrame *frame) {
 
   time_till_switch--;
   decrement_delays();
-  if(time_till_switch == 0){
+  TracePrintf(3, "trap_handlers: time_till_switch: %d\n", time_till_switch);
+  if(time_till_switch == 0) {
+    TracePrintf(2, "trap_handlers: it is time to switch, we are going to schedule processes now.\n");
+    reset_time_till_switch();
     schedule_processes();
   }
 }
@@ -124,13 +127,13 @@ void delay_handler(ExceptionStackFrame *frame) {
 void exit_handler(ExceptionStackFrame *frame) {
   int exit_status = frame->regs[1];
 
-  if (!is_current_process_orphan()) {
-    struct schedule_item *current = get_head();
+  // if (!is_current_process_orphan()) {
+  //   struct schedule_item *current = get_head();
 
-    struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
+  //   struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
 
-    add_child_exit_status(parent_pcb, exit_status);
-  }
+  //   add_child_exit_status(parent_pcb, exit_status);
+  // }
 
   decapitate();
 

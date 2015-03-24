@@ -77,6 +77,8 @@ select_next_process(){
  */
 void
 schedule_processes() {
+  TracePrintf(2, "process_scheduling: Beginning schedule_processes.\n");
+
   struct schedule_item *item = get_head();
   struct process_control_block *current_pcb = item->pcb;
 
@@ -97,6 +99,8 @@ schedule_processes() {
 
 void
 schedule_processes_during_decapitate() {
+  TracePrintf(2, "process_scheduling: Beginning schedule_processes_during_decapitate.\n");
+
   // if idle is at the head, make sure that there is something to switch to. If there isn't, we
   // don't need to context switch.
   struct schedule_item *old_head = get_head();
