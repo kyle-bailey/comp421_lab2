@@ -97,10 +97,18 @@ create_page_table() {
   return create_new_page_table_record();
 }
 
-// TODO
 void free_page_table(struct pte *page_table_to_free) {
-  TracePrintf(0, "page_table_management: free_page_table was called but it hasn't been implemented!\n");
-  Halt();
+  TracePrintf(0, "page_table_management: Beginning free_page_table\n");
+  
+  // figure out which page base this page table uses.
+
+  // find the entry in the page_table_records that belongs to that page base.
+  // if it's not found, print a message and maybe halt.
+
+  // change the value of is_top_full or is_bottom_full, depending on page_table_to_free's address to 0.
+
+  // if both is_top_full and is_bottom_full are 0 and current->next is NULL,
+  // you can free the physical page at page_base/PAGESIZE and free(page table record)
 }
 
 //Kernel Page Table initialzation
