@@ -10,7 +10,7 @@ get_first_page_table_record() {
   return first_page_table_record;
 }
 
-// Note: This can only be called after virtual memory is enabled.
+// Note: This is called before virtual memory is enabled.
 void
 init_first_page_table_record() {
   struct page_table_record *page_table_record = malloc(sizeof(struct page_table_record));
@@ -22,12 +22,14 @@ init_first_page_table_record() {
   page_table_record->is_bottom_full = 0;
   page_table_record->next = NULL;
 
-  unsigned int pfn = acquire_free_physical_page();
+  unsigned int pfn = acquire_top_physical_page();
 
-  int vpn = (long)page_base/PAGESIZE;
+  int vpn = (long)(page_base - VMEM_1_BASE)/PAGESIZE;
 
   kernel_page_table[vpn].valid = 1;
   kernel_page_table[vpn].pfn = pfn;
+
+  first_page_table_record = page_table_record;
 }
 
 // assumes that first_page_table_record has been initialized.
@@ -52,7 +54,7 @@ create_new_page_table_record() {
 
   unsigned int pfn = acquire_free_physical_page();
 
-  int vpn = (long)page_base/PAGESIZE;
+  int vpn = (long)(page_base - VMEM_1_BASE)/PAGESIZE;
   kernel_page_table[vpn].valid = 1;
   kernel_page_table[vpn].pfn = pfn;
 
@@ -60,29 +62,35 @@ create_new_page_table_record() {
 
   struct pte *new_page_table = (struct pte *)((long)page_base + PAGE_TABLE_SIZE);
 
-  prep_user_page_table(new_page_table);
-
   // we're returning the top half.
   return new_page_table;
 }
 
 struct pte *
 create_page_table() {
+  TracePrintf(3, "page_table_management: Beginning create_page_table\n");
   struct page_table_record *current = get_first_page_table_record();
+  TracePrintf(3, "page_table_management: just got first page table record.\n");
 
   while (current != NULL) {
     if (current->is_top_full == 0) {
       struct pte *new_page_table = (struct pte *)((long)current->page_base + PAGE_TABLE_SIZE);
-      prep_user_page_table(new_page_table);
       current->is_top_full = 1;
+
+      TracePrintf(3, "page_table_management: Finished creating page table, using top.\n");
+      return new_page_table;
     } else if (current->is_bottom_full == 0) {
       struct pte *new_page_table = (struct pte *)current->page_base;
-      prep_user_page_table(new_page_table);
       current->is_bottom_full = 1;
+
+      TracePrintf(3, "page_table_management: Finished creating page table, using bottom.\n");
+      return new_page_table;
     } else {
       current = current->next;
     }
   }
+
+  TracePrintf(3, "page_table_management: Creating new page table record\n");
 
   // add new page table record to end.
   // this sets is_top_full for the new entry to 1.
@@ -122,10 +130,10 @@ init_kernel_page_table(){
 }
 
 void
-prep_user_page_table(struct pte *page_table){
+prep_initial_page_table(struct pte *page_table){
   int i;
 
-  TracePrintf(2, "page_table_management: Starting to prep user page table.\n");
+  TracePrintf(2, "page_table_management: Starting to prep initial page table.\n");
   
   for(i = 0; i < PAGE_TABLE_LEN; i++) {
     if (i >= KERNEL_STACK_BASE / PAGESIZE) {
@@ -139,7 +147,29 @@ prep_user_page_table(struct pte *page_table){
     }
     page_table[i].pfn = i;
   }
-  TracePrintf(2, "page_table_management: User page table initialized.\n");
+  TracePrintf(2, "page_table_management: Initial page table initialized.\n");
+}
+
+void
+prep_page_table(struct pte *page_table){
+  int i;
+
+  TracePrintf(2, "page_table_management: Starting to prep new page table.\n");
+  
+  TracePrintf(2, "page_table_management: page table we are prepping: %p\n", page_table);
+
+  for(i = 0; i < PAGE_TABLE_LEN; i++) {
+    if (i >= KERNEL_STACK_BASE / PAGESIZE) {
+      page_table[i].valid = 1;
+      page_table[i].kprot = PROT_READ | PROT_WRITE;
+      page_table[i].uprot = PROT_NONE;
+    } else {
+      page_table[i].valid = 0;
+      page_table[i].kprot = PROT_NONE;
+      page_table[i].uprot = PROT_READ | PROT_WRITE | PROT_EXEC;
+    }
+  }
+  TracePrintf(2, "page_table_management: New page table initialized.\n");
 }
 
 //assumes that virtual memory has been enabled

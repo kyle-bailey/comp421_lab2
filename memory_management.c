@@ -145,3 +145,14 @@ acquire_free_physical_page() {
   }
   Halt();
 }
+
+unsigned int
+acquire_top_physical_page() {
+  unsigned int top_physical_page_addr = DOWN_TO_PAGE(VMEM_1_LIMIT - 1);
+
+  int pfn = top_physical_page_addr/PAGESIZE;
+
+  is_physical_page_occupied[pfn] = 1;
+
+  return pfn;
+}
