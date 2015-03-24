@@ -3,6 +3,33 @@
 
 struct pte *kernel_page_table;
 
+struct page_table_record *first_page_table_record;
+
+struct page_table_record *
+get_first_page_table_record() {
+  return first_page_table_record;
+}
+
+// Note: This needs to be called after virtual memory is enabled.
+void
+init_first_page_table_record() {
+  struct page_table_record *page_table_record = malloc(sizeof(struct page_table_record));
+
+  void *page_base = (void *)DOWN_TO_PAGE(VMEM_1_LIMIT - 1);
+
+  page_table_record->page_base = page_base;
+  page_table_record->is_top_full = 0;
+  page_table_record->is_bottom_full = 0;
+  page_table_record->next = NULL;
+
+  unsigned int pfn = acquire_free_physical_page();
+
+  int vpn = (long)page_base/PAGESIZE;
+
+  kernel_page_table[vpn].valid = 1;
+  kernel_page_table[vpn].pfn = pfn;
+}
+
 //Kernel Page Table initialzation
 void
 init_kernel_page_table(){

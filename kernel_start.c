@@ -69,7 +69,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   idle_pcb->delay = IDLE_DELAY;
-  idle_pcb->parent_pid = ORPHAN_PARENT_PID; // this should be null, but is here for testing.
+  idle_pcb->parent_pid = ORPHAN_PARENT_PID;
   idle_pcb->exit_status_queue = NULL;
   // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
   prep_user_page_table(idle_pcb->page_table);
@@ -82,7 +82,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   init_pcb->pid = 0;
   init_pcb->page_table = malloc(PAGE_TABLE_SIZE);
   init_pcb->delay = 0;
-  init_pcb->parent_pid = 1;
+  init_pcb->parent_pid = ORPHAN_PARENT_PID;
   init_pcb->exit_status_queue = NULL;
   prep_user_page_table(init_pcb->page_table);
   add_pcb_to_schedule(init_pcb);
@@ -99,6 +99,9 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   WriteRegister(REG_VM_ENABLE, 1);
 
   virt_mem_initialized = 1;
+
+  // page table records can only be created after virtual memory is enabled.
+  init_first_page_table_record();
 
   TracePrintf(2, "kernel_start: Virtual memory enabled.\n");
 
