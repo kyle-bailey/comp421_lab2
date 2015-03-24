@@ -16,3 +16,5 @@ void init_kernel_page_table();
 void prep_user_page_table(struct pte *page_table);
 int num_pages_in_use(struct pte *page_table);
 void init_first_page_table_record();
+struct pte *create_page_table();
+void free_page_table(struct pte *page_table_to_free);

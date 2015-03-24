@@ -30,6 +30,71 @@ init_first_page_table_record() {
   kernel_page_table[vpn].pfn = pfn;
 }
 
+// assumes that first_page_table_record has been initialized.
+// this sets is_top_full for the new entry to 1.
+// returns a page table, not a page table record.
+struct pte *
+create_new_page_table_record() {
+  struct page_table_record *current = get_first_page_table_record();
+
+  while (current->next != NULL) {
+    current = current->next;
+  }
+
+  struct page_table_record *new_page_table_record = malloc(sizeof(struct page_table_record));
+
+  void *page_base = (void *)DOWN_TO_PAGE((long)current->page_base - 1);
+
+  new_page_table_record->page_base = page_base;
+  new_page_table_record->is_top_full = 1;
+  new_page_table_record->is_bottom_full = 0;
+  new_page_table_record->next = NULL;
+
+  unsigned int pfn = acquire_free_physical_page();
+
+  int vpn = (long)page_base/PAGESIZE;
+  kernel_page_table[vpn].valid = 1;
+  kernel_page_table[vpn].pfn = pfn;
+
+  current->next = new_page_table_record;
+
+  struct pte *new_page_table = (struct pte *)((long)page_base + PAGE_TABLE_SIZE);
+
+  prep_user_page_table(new_page_table);
+
+  // we're returning the top half.
+  return new_page_table;
+}
+
+struct pte *
+create_page_table() {
+  struct page_table_record *current = get_first_page_table_record();
+
+  while (current != NULL) {
+    if (current->is_top_full == 0) {
+      struct pte *new_page_table = (struct pte *)((long)current->page_base + PAGE_TABLE_SIZE);
+      prep_user_page_table(new_page_table);
+      current->is_top_full = 1;
+    } else if (current->is_bottom_full == 0) {
+      struct pte *new_page_table = (struct pte *)current->page_base;
+      prep_user_page_table(new_page_table);
+      current->is_bottom_full = 1;
+    } else {
+      current = current->next;
+    }
+  }
+
+  // add new page table record to end.
+  // this sets is_top_full for the new entry to 1.
+  return create_new_page_table_record();
+}
+
+// TODO
+void free_page_table(struct pte *page_table_to_free) {
+  TracePrintf(0, "page_table_management: free_page_table was called but it hasn't been implemented!\n");
+  Halt();
+}
+
 //Kernel Page Table initialzation
 void
 init_kernel_page_table(){
