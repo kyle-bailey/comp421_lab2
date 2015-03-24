@@ -119,8 +119,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     } else {
       LoadProgram(cmd_args[0], cmd_args, frame, init_pcb->page_table);
     }
+
+    TracePrintf(2, "kernel_start: Init process loaded.\n");
   }
-
-  TracePrintf(2, "kernel_start: Init process loaded.\n");
-
 }
