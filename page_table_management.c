@@ -10,7 +10,7 @@ get_first_page_table_record() {
   return first_page_table_record;
 }
 
-// Note: This needs to be called after virtual memory is enabled.
+// Note: This can only be called after virtual memory is enabled.
 void
 init_first_page_table_record() {
   struct page_table_record *page_table_record = malloc(sizeof(struct page_table_record));
