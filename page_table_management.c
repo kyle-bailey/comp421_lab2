@@ -1,3 +1,4 @@
+#include "memory_management.h"
 #include "page_table_management.h"
 
 struct pte *kernel_page_table;

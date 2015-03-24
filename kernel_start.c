@@ -6,8 +6,8 @@
 #include "page_table_management.h"
 #include "load_program.h"
 #include "context_switch.h"
-#include "process_scheduling.h"
 #include "process_control_block.h"
+#include "process_scheduling.h"
 
 void **interrupt_vector_table;
 int is_init = 1;
@@ -68,8 +68,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
   idle_pcb->pid = 1;
   idle_pcb->page_table = malloc(PAGE_TABLE_SIZE);
-  idle_pcb->delay = 0;
-  idle_pcb->parent_pid = ORPHAN_PARENT_PID;
+  idle_pcb->delay = IDLE_DELAY;
+  idle_pcb->parent_pid = ORPHAN_PARENT_PID; // this should be null, but is here for testing.
   idle_pcb->exit_status_queue = NULL;
   // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
   prep_user_page_table(idle_pcb->page_table);

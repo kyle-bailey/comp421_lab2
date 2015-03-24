@@ -2,6 +2,9 @@
 #include <comp421/yalnix.h>
 #include <stdlib.h>
 
+#define IDLE_PID 1
+#define IDLE_DELAY -1
+
 struct schedule_item {
   struct schedule_item *next;
   struct process_control_block *pcb;

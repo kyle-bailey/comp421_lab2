@@ -5,8 +5,6 @@
 #include "context_switch.h"
 #include "trap_handlers.h"
 
-#define IDLE_PID 1
-
 int can_idle_switch();
 
 struct schedule_item *head = NULL;
@@ -33,31 +31,43 @@ move_head_to_tail() {
   }
 }
 
-/* 
- * Selects the next schedule item who's pcb->delay is 0, and moves it to the head of the list
-* This process assumes that if we are context switching, move_head_to_tail() has already been called
- */
-void
-select_next_process(){
+int // 1 for success, 0 for failure
+move_next_process_to_head(int delay) {
   struct schedule_item *current = head;
   struct schedule_item *previous = NULL;
 
-  while(current != NULL){
+  while(current != NULL) {
     struct process_control_block *pcb = current->pcb;
-    if(pcb->delay == 0){
+    if(pcb->delay == delay){
       if(previous == NULL){
-        return;
+        return 1;
       } else {
         previous->next = current->next;
         current->next = head;
         head = current;
-        return;
+        return 1;
       }
     } else {
       previous = current;
       current = current->next;
     }
   }
+
+  return 0;
+}
+
+/* 
+ * Selects the next schedule item who's pcb->delay is 0, and moves it to the head of the list
+* This process assumes that if we are context switching, move_head_to_tail() has already been called
+ */
+void
+select_next_process(){
+  if (move_next_process_to_head(0)) {
+    return;
+  } else if (move_next_process_to_head(IDLE_DELAY)) {
+    return;
+  }
+
   Halt(); //ERROR: we iterated through all processes and they all had delays
 }
 
