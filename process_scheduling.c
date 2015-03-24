@@ -202,7 +202,7 @@ get_pcb_by_pid(int pid) {
     return NULL;
   }
 
-  while (current->next != NULL) {
+  while (current != NULL) {
     if (current->pcb->pid == pid) {
       return current->pcb;
     }

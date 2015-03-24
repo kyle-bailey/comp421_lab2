@@ -20,7 +20,7 @@ void add_child_exit_status(struct process_control_block *pcb, int exit_status) {
 
   struct exit_status_node *new_exit_status_node = malloc(sizeof(struct exit_status_node));
   new_exit_status_node->exit_status = exit_status;
-  new_exit_status_node->next = NULL;  
+  new_exit_status_node->next = NULL;
 
   if (current == NULL) {
     pcb->exit_status_queue = new_exit_status_node;

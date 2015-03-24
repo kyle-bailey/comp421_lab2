@@ -127,13 +127,15 @@ void delay_handler(ExceptionStackFrame *frame) {
 void exit_handler(ExceptionStackFrame *frame) {
   int exit_status = frame->regs[1];
 
-  // if (!is_current_process_orphan()) {
-  //   struct schedule_item *current = get_head();
+  if (!is_current_process_orphan()) {
+    struct schedule_item *current = get_head();
 
-  //   struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
+    struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
+    TracePrintf(3, "trap_handlers: parent_pcb: %p\n", parent_pcb);
 
-  //   add_child_exit_status(parent_pcb, exit_status);
-  // }
+    add_child_exit_status(parent_pcb, exit_status);
+    TracePrintf(3, "trap_handlers: Finished adding child exit status\n");
+  }
 
   decapitate();
 
