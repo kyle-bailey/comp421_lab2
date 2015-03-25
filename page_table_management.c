@@ -88,12 +88,6 @@ create_page_table() {
     } else {
       current = current->next;
     }
-
-    // if we reach the end of the page table records, and we find a dead record at the end, we can remove it.
-    if (current->is_top_full && current->is_bottom_full && current->next == NULL) {
-      free_physical_page((long)current->page_base/PAGESIZE);
-      free(current);
-    }
   }
 
   TracePrintf(3, "page_table_management: Creating new page table record\n");
