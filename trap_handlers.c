@@ -43,15 +43,18 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 }
 
 void fork_trap_handler(ExceptionStackFrame *frame){
-  //create pcb of new process
-  int next_pid = get_next_pid();
-  struct process_control_block *child_pcb = create_new_process(next_pid, get_current_pid());
+  //create child process
+  int child_pid = get_next_pid();
+  struct process_control_block *child_pcb = create_new_process(child_pid, get_current_pid());
 
-
-  //add it to the schedule
-  //set frame[1]-> pid
   //call specfic context switch function - copies region 0
-  //check to see if your pid == frame-regs[0], if yes set frame->regs[0] = 0
+
+  //If we are the parent, return the child's PID, if we are the child return 0
+  if(get_current_pid() == child_pid){
+    frame->regs[0] = 0;
+  } else {
+    frame->regs[0] = child_pid;
+  }
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {

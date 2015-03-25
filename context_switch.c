@@ -79,3 +79,74 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   return &pcb1->saved_context;  
 }
+
+SavedContext *
+child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
+  TracePrintf(3, "context_switch: Starting child_process_region_0_initialization()\n");
+
+  int i = 0;
+  int first_invalid_region_0_page = -1;
+
+  struct process_control_block *parent_pcb = (struct process_control_block *)p1;
+  struct process_control_block *child_pcb = (struct process_control_block *)p2;
+
+  struct pte *parent_page_table = parent_pcb->page_table;
+  struct pte *child_page_table = child_pcb->page_table;
+
+  int num_user_pages = (VMEM_0_LIMIT - VMEM_0_BASE)/PAGESIZE;
+
+  /*
+   * Find the location of the first invalid parent region 0 page, if there is one
+   * This will be used as our temp location for the page by page copy
+   */
+  for (i = MEM_INVALID_PAGES; i < USER_STACK_LIMIT/PAGESIZE; i++) {
+    if (parent_page_table[i].valid == 0) {
+      first_invalid_region_0_page = i;
+      break;
+    }
+  }
+
+  TracePrintf(3, "context_switch: beginning region 0 copy.\n");
+
+  // copy the region 0 of parent to child
+  if(first_invalid_region_0_page != -1){
+    for (i = MEM_INVALID_PAGES; i < num_user_pages; i++) {
+      unsigned int child_physical_page_number = acquire_free_physical_page();
+
+      // temporarily map that page to a physical page.
+      parent_page_table[first_invalid_region_0_page].valid = 1;
+      parent_page_table[first_invalid_region_0_page].kprot = PROT_READ | PROT_WRITE;
+      parent_page_table[first_invalid_region_0_page].uprot = PROT_READ | PROT_EXEC;
+      parent_page_table[first_invalid_region_0_page].pfn = child_physical_page_number;
+
+      void *parent_virtual_addr = (void *)(long)(((MEM_INVALID_PAGES + i) * PAGESIZE) + PMEM_BASE);
+      void *temp_virt_addr_for_region_0_page = (void *)(long)((first_invalid_region_0_page * PAGESIZE) + PMEM_BASE);
+
+      WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_region_0_page);
+
+
+      // copy region 0 page into our new page of memory.
+      memcpy(
+        temp_virt_addr_for_region_0_page, // dest
+        parent_virtual_addr, // src
+        PAGESIZE
+      );
+
+      // pretend that the temp memory never existed.
+      parent_page_table[first_invalid_region_0_page].valid = 0;
+      WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_region_0_page);
+
+      // give the pfn from the temp memory to child's page table.
+      child_page_table[i + MEM_INVALID_PAGES].pfn = child_physical_page_number;
+    }
+  } else {
+    //TODO: Use region 1 as our temp to copy the page tables
+  }
+
+  WriteRegister(REG_PTR0, (RCS421RegVal)child_page_table);
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
+
+  TracePrintf(1, "context_switch: child_process_region_0_initialization() completed.\n");
+
+  return &pcb1->saved_context;  
+}
