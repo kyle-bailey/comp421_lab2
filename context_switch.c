@@ -1,6 +1,7 @@
 #include "context_switch.h"
 #include "process_control_block.h"
 #include "memory_management.h"
+#include "page_table_management.h"
 
 SavedContext *
 context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
@@ -47,8 +48,8 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
         process_1_page_table[j].uprot = PROT_READ | PROT_EXEC;
         process_1_page_table[j].pfn = process_2_physical_page_number;
 
-        void *process_1_virtual_addr = (void *)(long)(((KERNEL_STACK_BASE/PAGESIZE + i) * PAGESIZE) + PMEM_BASE);
-        void *temp_virt_addr_for_kernel_stack = (void *)(long)((j * PAGESIZE) + PMEM_BASE);
+        void *process_1_virtual_addr = (void *)(long)(((KERNEL_STACK_BASE/PAGESIZE + i) * PAGESIZE) + VMEM_0_BASE);
+        void *temp_virt_addr_for_kernel_stack = (void *)(long)((j * PAGESIZE) + VMEM_0_BASE);
 
         WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_kernel_stack);
 
@@ -119,8 +120,8 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
       parent_page_table[first_invalid_region_0_page].uprot = PROT_READ | PROT_EXEC;
       parent_page_table[first_invalid_region_0_page].pfn = child_physical_page_number;
 
-      void *parent_virtual_addr = (void *)(long)(((MEM_INVALID_PAGES + i) * PAGESIZE) + PMEM_BASE);
-      void *temp_virt_addr_for_region_0_page = (void *)(long)((first_invalid_region_0_page * PAGESIZE) + PMEM_BASE);
+      void *parent_virtual_addr = (void *)(long)(((MEM_INVALID_PAGES + i) * PAGESIZE) + VMEM_0_BASE);
+      void *temp_virt_addr_for_region_0_page = (void *)(long)((first_invalid_region_0_page * PAGESIZE) + VMEM_0_BASE);
 
       WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_region_0_page);
 
@@ -141,6 +142,52 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
     }
   } else {
     //TODO: Use region 1 as our temp to copy the page tables
+    int first_invalid_region_1_page = -1;
+
+    for (i = 0; i < PAGE_TABLE_LEN; i++) {
+      if (kernel_page_table[i].valid == 0) {
+        first_invalid_region_1_page = i;
+
+        parent_pcb->out_of_memory = 0;
+
+        break;
+      }
+    }
+
+    if (first_invalid_region_1_page == -1) {
+      parent_pcb->out_of_memory = 1;
+
+      // if we can't copy over the region_0, then we HAVE to use the parent's kernel stack.
+      return &parent_pcb->saved_context;
+    } else {
+      // use the page to copy over the entire region_1.
+      for (i = MEM_INVALID_PAGES; i < num_user_pages; i++) {
+        unsigned int child_physical_page_number = acquire_free_physical_page();
+
+        // temporarily map that page to a physical page.
+        kernel_page_table[first_invalid_region_1_page].valid = 1;
+        kernel_page_table[first_invalid_region_1_page].pfn = child_physical_page_number;
+
+        void *parent_virtual_addr = (void *)(long)(((MEM_INVALID_PAGES + i) * PAGESIZE) + VMEM_0_BASE);
+        void *temp_virt_addr_for_region_1_page = (void *)(long)((first_invalid_region_1_page * PAGESIZE) + VMEM_1_BASE);
+
+        WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_region_1_page);
+
+        // copy region 0 page into our new page of memory.
+        memcpy(
+          temp_virt_addr_for_region_1_page, // dest
+          parent_virtual_addr, // src
+          PAGESIZE
+        );
+
+        // pretend that the temp memory never existed.
+        parent_page_table[first_invalid_region_1_page].valid = 0;
+        WriteRegister(REG_TLB_FLUSH, (RCS421RegVal) temp_virt_addr_for_region_1_page);
+
+        // give the pfn from the temp memory to child's page table.
+        child_page_table[i + MEM_INVALID_PAGES].pfn = child_physical_page_number;
+      }
+    }
   }
 
   WriteRegister(REG_PTR0, (RCS421RegVal)child_page_table);
@@ -148,5 +195,5 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   TracePrintf(1, "context_switch: child_process_region_0_initialization() completed.\n");
 
-  return &parent_pcb->saved_context;  
+  return &child_pcb->saved_context;  
 }

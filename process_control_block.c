@@ -57,6 +57,7 @@ create_unprepped_process(int pid, int parent_pid){
   new_pcb->delay = 0;
   new_pcb->parent_pid = parent_pid;
   new_pcb->exit_status_queue = NULL;
+  new_pcb->out_of_memory = 0;
   add_pcb_to_schedule(new_pcb);
   return new_pcb;
 }
