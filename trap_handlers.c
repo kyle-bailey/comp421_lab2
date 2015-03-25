@@ -3,6 +3,7 @@
 #include "process_scheduling.h"
 #include "process_control_block.h"
 #include "memory_management.h"
+#include "context_switch.h"
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
