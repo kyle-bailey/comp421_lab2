@@ -7,6 +7,7 @@
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 void exit_handler(ExceptionStackFrame *frame);
+void fork_trap_handler(ExceptionStackFrame *frame);
 
 #define SCHEDULE_DELAY  2
 int time_till_switch = SCHEDULE_DELAY;

@@ -1,7 +1,7 @@
 #include <comp421/hardware.h>
 #include <comp421/yalnix.h>
 
-#define ORPHAN_PARENT_PID -1;
+#define ORPHAN_PARENT_PID -1
 
 struct exit_status_node
 {

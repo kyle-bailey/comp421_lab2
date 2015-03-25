@@ -4,7 +4,7 @@
 #include "process_control_block.h"
 #include "context_switch.h"
 #include "trap_handlers.h"
-#include "page_table_management.h"z
+#include "page_table_management.h"
 
 int can_idle_switch();
 int next_pid = BASE_PID;
