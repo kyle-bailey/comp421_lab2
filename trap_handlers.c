@@ -124,7 +124,14 @@ void memory_trap_handler (ExceptionStackFrame *frame) {
 
 void math_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_MATH interrupt handler...\n");
-  Halt();
+
+  int code = frame->code;
+
+  int current_pid = get_current_pid();
+
+  TracePrintf(0, "trap_handlers: Terminating current process of pid %d due to TRAP_MATH of code %d\n", current_pid, code);
+
+  exit_handler(frame);
 }
 
 void tty_recieve_trap_handler (ExceptionStackFrame *frame) {
