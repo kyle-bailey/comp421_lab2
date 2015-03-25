@@ -13,20 +13,32 @@ int time_till_switch = SCHEDULE_DELAY;
 
 void kernel_trap_handler(ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_KERNEL interrupt handler...\n");
-  if(frame->code == YALNIX_GETPID){
-    TracePrintf(1, "trap_handlers: GetPid requested.\n");
-    getpid_handler(frame);
-  } else if (frame->code == YALNIX_DELAY) {
-    TracePrintf(1, "trap_handlers: Delay requested.\n");
-    delay_handler(frame);
-    return;
-  } else if (frame->code == YALNIX_BRK) {
-    TracePrintf(1, "trap_handlers: Brk requested.\n");
-    brk_handler(frame);
-  } else if (frame->code == YALNIX_EXIT) {
-    TracePrintf(1, "trap_handlers: Exit requested.\n");
-    exit_handler(frame);
+
+  int code = frame->code;
+
+  switch (code) {
+    case YALNIX_GETPID:
+      TracePrintf(1, "trap_handlers: GetPid requested.\n");
+      getpid_handler(frame);
+      break;
+    case YALNIX_DELAY:
+      TracePrintf(1, "trap_handlers: Delay requested.\n");
+      delay_handler(frame);
+      break;
+    case YALNIX_BRK:
+      TracePrintf(1, "trap_handlers: Brk requested.\n");
+      brk_handler(frame);
+      break;
+    case YALNIX_EXIT:
+      TracePrintf(1, "trap_handlers: Exit requested.\n");
+      exit_handler(frame);
+      break;
+    case YALNIX_FORK:
+      TracePrintf(1, "trap_handlers: Fork requested.\n");
+      Halt();
+      break;
   }
+
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
