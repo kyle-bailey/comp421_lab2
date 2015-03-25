@@ -113,7 +113,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
   if(num_user_pages - MEM_INVALID_PAGES > num_free_physical_pages()){
     parent_pcb->out_of_memory = 1;
 
-    &parent_pcb->saved_context;
+    return &parent_pcb->saved_context;
   }
 
   // copy the region 0 of parent to child
