@@ -109,6 +109,13 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   TracePrintf(3, "context_switch: beginning region 0 copy.\n");
 
+  //if we don't have enough physical memory to make the copy, return with parent saved context
+  if(num_user_pages - MEM_INVALID_PAGES > num_free_physical_pages()){
+    parent_pcb->out_of_memory = 1;
+
+    &parent_pcb->saved_context;
+  }
+
   // copy the region 0 of parent to child
   if(first_invalid_region_0_page != -1){
     for (i = MEM_INVALID_PAGES; i < num_user_pages; i++) {
@@ -141,7 +148,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
       child_page_table[i + MEM_INVALID_PAGES].pfn = child_physical_page_number;
     }
   } else {
-    //TODO: Use region 1 as our temp to copy the page tables
+    //Use region 1 as our temp to copy the page tables
     int first_invalid_region_1_page = -1;
 
     for (i = 0; i < PAGE_TABLE_LEN; i++) {
