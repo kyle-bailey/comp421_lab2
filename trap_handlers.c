@@ -47,7 +47,11 @@ void fork_trap_handler(ExceptionStackFrame *frame){
   int child_pid = get_next_pid();
   struct process_control_block *child_pcb = create_new_process(child_pid, get_current_pid());
 
+  struct schedule_item *item = get_head();
+  struct process_control_block *parent_pcb = item->pcb;
+
   //call specfic context switch function - copies region 0
+  ContextSwitch(child_process_region_0_initialization, &parent_pcb->saved_context, (void *)parent_pcb, (void *)child_pcb);
 
   //If we are the parent, return the child's PID, if we are the child return 0
   if(get_current_pid() == child_pid){

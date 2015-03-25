@@ -148,5 +148,5 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   TracePrintf(1, "context_switch: child_process_region_0_initialization() completed.\n");
 
-  return &pcb1->saved_context;  
+  return &parent_pcb->saved_context;  
 }
