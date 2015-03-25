@@ -69,15 +69,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   //Region 0 Page Table Initilization
   //creating idle process
-  struct process_control_block *idle_pcb = malloc(sizeof(struct process_control_block));
-  idle_pcb->pid = 1;
-  idle_pcb->page_table = create_page_table();
-  prep_initial_page_table(idle_pcb->page_table);  
-  idle_pcb->delay = IDLE_DELAY;
-  idle_pcb->parent_pid = ORPHAN_PARENT_PID;
-  idle_pcb->exit_status_queue = NULL;
-  // TracePrintf(3, "kernel_start: will this kill? %p\n", idle_pcb->page_table[0]);
-  add_pcb_to_schedule(idle_pcb);
+  struct process_control_block *idle_pcb = create_idle_process();
 
   TracePrintf(2, "kernel_start: idle process pcb initialized.\n");
 
@@ -96,14 +88,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   // page table records can only be created after virtual memory is enabled.
   //creating init process - temp moved to here so we can use malloc
-  struct process_control_block *init_pcb = malloc(sizeof(struct process_control_block));
-  init_pcb->pid = 0;
-  init_pcb->page_table = create_page_table();
-  prep_page_table(init_pcb->page_table);  
-  init_pcb->delay = 0;
-  init_pcb->parent_pid = ORPHAN_PARENT_PID;
-  init_pcb->exit_status_queue = NULL;
-  add_pcb_to_schedule(init_pcb);
+  struct process_control_block *init_pcb = create_new_process(INIT_PID, ORPHAN_PARENT_PID);
 
   TracePrintf(2, "kernel_start: init process pcb initialized.\n");
 

@@ -7,8 +7,21 @@
 #include "page_table_management.h"z
 
 int can_idle_switch();
+int next_pid = BASE_PID;
 
 struct schedule_item *head = NULL;
+
+int
+get_current_pid(){
+  struct schedule_item *item = get_head();
+  struct process_control_block *pcb = item->pcb;
+  return pcb->pid;
+}
+
+int
+get_next_pid(){
+  return next_pid++;
+}
 
 struct schedule_item *
 get_head() {

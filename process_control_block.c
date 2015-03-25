@@ -32,3 +32,29 @@ void add_child_exit_status(struct process_control_block *pcb, int exit_status) {
     current->next = new_exit_status_node;
   }
 }
+
+struct process_control_block * 
+create_idle_process(){
+  struct process_control_block *pcb = create_unprepped_process(IDLE_PID, ORPHAN_PARENT_PID);
+  prep_initial_page_table(pcb->page_table);
+  return pcb;
+}
+
+struct process_control_block * 
+create_new_process(int pid, int parent_pid){
+  struct process_control_block *pcb = create_unprepped_process(pid, parent_pid);
+  prep_page_table(pcb->page_table); 
+  return pcb;
+}
+
+struct process_control_block * 
+create_unprepped_process(int pid, int parent_pid){
+  struct process_control_block *new_pcb = malloc(sizeof(struct process_control_block));
+  new_pcb->pid = pid;
+  new_pcb->page_table = create_page_table();
+  new_pcb->delay = 0;
+  new_pcb->parent_pid = parent_pid;
+  new_pcb->exit_status_queue = NULL;
+  add_pcb_to_schedule(new_pcb);
+  return new_pcb;
+}

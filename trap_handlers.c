@@ -35,18 +35,28 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
       break;
     case YALNIX_FORK:
       TracePrintf(1, "trap_handlers: Fork requested.\n");
-      Halt();
+      fork_trap_handler(frame);
       break;
   }
 
 }
 
+void fork_trap_handler(ExceptionStackFrame *frame){
+  //create pcb of new process
+  int next_pid = get_next_pid();
+  struct process_control_block *child_pcb = create_new_process(next_pid, get_current_pid());
+
+
+  //add it to the schedule
+  //set frame[1]-> pid
+  //call specfic context switch function - copies region 0
+  //check to see if your pid == frame-regs[0], if yes set frame->regs[0] = 0
+}
+
 void clock_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_CLOCK interrupt handler...\n");
   //TESTING
-  struct schedule_item *item = get_head();
-  struct process_control_block *pcb = item->pcb;
-  TracePrintf(1, "trap_handlers: TRAP CLOCK with PID: %d\n", pcb->pid);
+  TracePrintf(1, "trap_handlers: TRAP CLOCK with PID: %d\n", get_current_pid());
   //TESTING
 
   time_till_switch--;
@@ -103,10 +113,7 @@ void tty_transmit_trap_handler (ExceptionStackFrame *frame) {
 }
 
 void getpid_handler(ExceptionStackFrame *frame) {
-  struct schedule_item *item = get_head();
-  struct process_control_block *pcb = item->pcb;
-  int pid = pcb->pid;
-  frame->regs[0] = pid;
+  frame->regs[0] = get_current_pid();
 }
 
 /*
