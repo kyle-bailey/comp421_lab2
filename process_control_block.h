@@ -19,6 +19,7 @@ struct process_control_block
   void *user_stack_limit;
   struct exit_status_node *exit_status_queue;
   int parent_pid;
+  int out_of_memory;
 };
 
 struct exit_status_node *get_next_child_exit_status_node(struct process_control_block *pcb);

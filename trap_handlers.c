@@ -54,12 +54,21 @@ void fork_trap_handler(ExceptionStackFrame *frame){
   //call specfic context switch function - copies region 0
   ContextSwitch(child_process_region_0_initialization, &parent_pcb->saved_context, (void *)parent_pcb, (void *)child_pcb);
 
-  //If we are the parent, return the child's PID, if we are the child return 0
-  if(get_current_pid() == child_pid){
-    frame->regs[0] = 0;
+  if (parent_pcb->out_of_memory) {
+    // if this is REALLY true, then the pcb at head is child, but the page table & context are parent.
+    TracePrintf(1, "trap_handlers: fork attempted, but there is not enough memory for REGION_1 copy.\n");
+    // decapitate the process at the head of the schedule (child)
+    decapitate();
+    frame->regs[0] = ERROR;
   } else {
-    frame->regs[0] = child_pid;
+    //If we are the parent, return the child's PID, if we are the child return 0
+    if(get_current_pid() == child_pid){
+      frame->regs[0] = 0;
+    } else {
+      frame->regs[0] = child_pid;
+    }
   }
+
 }
 
 void clock_trap_handler (ExceptionStackFrame *frame) {
