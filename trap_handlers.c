@@ -89,7 +89,14 @@ void clock_trap_handler (ExceptionStackFrame *frame) {
 
 void illegal_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_ILLEGAL interrupt handler...\n");
-  Halt();
+
+  int vector = frame->vector;
+
+  int current_pid = get_current_pid();
+
+  TracePrintf(0, "trap_handlers: Terminating current process of pid %d due to TRAP_ILLEGAL of vector %d\n", current_pid, vector);
+
+  exit_handler(frame);
 }
 
 void memory_trap_handler (ExceptionStackFrame *frame) {
