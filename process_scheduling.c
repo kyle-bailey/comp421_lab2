@@ -4,6 +4,7 @@
 #include "process_control_block.h"
 #include "context_switch.h"
 #include "trap_handlers.h"
+#include "page_table_management.h"z
 
 int can_idle_switch();
 
@@ -137,7 +138,7 @@ decapitate() {
 
   schedule_processes_during_decapitate();
 
-  free(current->pcb->page_table);
+  free_page_table(current->pcb->page_table);
   free(current->pcb);
   free(current);
 
