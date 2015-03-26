@@ -13,12 +13,14 @@ void **interrupt_vector_table;
 int is_init = 1;
 
 void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_brk, char **cmd_args) {
-  TracePrintf(1, "kernel_start: KernelStart called.\n");
+    TracePrintf(1, "kernel_start: KernelStart called with num physical pages: %d.\n", pmem_size/PAGESIZE);
 
   int i;
 
   //initalize structure that keeps track of free pages
   init_is_physical_page_occupied(pmem_size);
+    
+  TracePrintf(2, "kernel_start: Init physical page tracker. There are now %d free physical pages\n", num_free_physical_pages());
 
   TracePrintf(2, "kernel_start: Free pages structure initialized.\n");
 
@@ -62,6 +64,8 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
 
   //Kernel Page Table initialzation
   init_kernel_page_table();
+    
+  TracePrintf(2, "kernel_start: Kernel PT initialized. There are now %d free physical pages\n", num_free_physical_pages());
 
   TracePrintf(2, "kernel_start: Initializing first page table record.\n");
   init_first_page_table_record();
@@ -97,7 +101,7 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
   loadargs[0] = NULL;
   LoadProgram("idle", loadargs, frame, idle_pcb->page_table);
 
-  TracePrintf(2, "kernel_start: Idle process loaded.\n");
+  TracePrintf(2, "kernel_start: Idle process loaded. There are now %d free physical pages\n", num_free_physical_pages());
 
   ContextSwitch(idle_and_init_initialization, &idle_pcb->saved_context, (void *)idle_pcb, (void *)init_pcb);
 

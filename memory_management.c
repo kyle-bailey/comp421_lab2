@@ -112,7 +112,7 @@ init_is_physical_page_occupied(unsigned int pmem_size) {
   num_physical_pages = pmem_size/PAGESIZE;
   is_physical_page_occupied = malloc(num_physical_pages * sizeof(int));
 
-  memset(is_physical_page_occupied, 0, sizeof(is_physical_page_occupied));
+  memset(is_physical_page_occupied, 0, num_physical_pages);
 }
 
 int
@@ -120,7 +120,7 @@ num_free_physical_pages() {
   int count = 0;
   int i;
 
-  for(i = 0; i < VMEM_0_LIMIT/PAGESIZE; i++){
+  for(i = 0; i < num_physical_pages; i++){
     if(is_physical_page_occupied[i] == 0){
       count++;
     }
