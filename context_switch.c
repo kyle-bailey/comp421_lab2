@@ -98,6 +98,12 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
   struct pte *child_page_table = child_pcb->page_table;
 
   int num_user_pages = (VMEM_0_LIMIT - VMEM_0_BASE)/PAGESIZE;
+  int num_pages_to_copy = 0;
+  for(i = 0; i < num_user_pages; i++){
+    if(parent_page_table[i].valid == 1){
+      num_pages_to_copy++;
+    }
+  }
 
   TracePrintf(3, "context_switch: MEM_INVALID_PAGES: %d\n", MEM_INVALID_PAGES);
 
@@ -117,7 +123,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   //if we don't have enough physical memory to make the copy, return with parent saved context
   TracePrintf(3, "context_switch: num_user_pages: %d , num_free_physical_pages: %d\n", num_user_pages, num_free_physical_pages());
-  if(num_user_pages - MEM_INVALID_PAGES > num_free_physical_pages()){
+  if(num_pages_to_copy > num_free_physical_pages()){
     parent_pcb->out_of_memory = 1;
 
     return &parent_pcb->saved_context;
