@@ -4,6 +4,7 @@
 #include "process_control_block.h"
 #include "memory_management.h"
 #include "context_switch.h"
+#include "load_program.h"
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
