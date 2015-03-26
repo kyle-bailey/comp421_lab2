@@ -142,26 +142,26 @@ decapitate() {
   struct schedule_item *current = get_head();
   
   if (current == NULL) {
-    TracePrintf(0, "linked_list: You are trying to decapitate when there are no processes.\n");
+    TracePrintf(0, "process_scheduling: You are trying to decapitate when there are no processes.\n");
     Halt();    
   }
 
   struct process_control_block *current_pcb = current->pcb;
 
   if (current_pcb->pid == IDLE_PID) {
-    TracePrintf(0, "linked_list: You are trying to decapitate with idle as head.\n");
+    TracePrintf(0, "process_scheduling: You are trying to decapitate with idle as head.\n");
     Halt();
   }
 
   schedule_processes_during_decapitate();
 
-  TracePrintf(2, "linked_list: current->pcb->page_table: %p\n", current->pcb->page_table);
-  TracePrintf(2, "linked_list: current->pcb: %p\n", current->pcb);
-  TracePrintf(2, "linked_list: current: %p\n", current);
+  TracePrintf(2, "process_scheduling: current->pcb->page_table: %p\n", current->pcb->page_table);
+  TracePrintf(2, "process_scheduling: current->pcb: %p\n", current->pcb);
+  TracePrintf(2, "process_scheduling: current: %p\n", current);
   free_page_table(current->pcb->page_table);
   free(current->pcb);
   free(current);
-  TracePrintf(2, "linked_list: Finished a decapitation.\n");
+  TracePrintf(2, "process_scheduling: Finished a decapitation.\n");
 }
 
 void
