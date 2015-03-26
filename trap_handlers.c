@@ -10,6 +10,7 @@ void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 void exit_handler(ExceptionStackFrame *frame);
 void fork_trap_handler(ExceptionStackFrame *frame);
+void wait_trap_handler(ExceptionStackFrame *frame);
 
 #define SCHEDULE_DELAY  2
 int time_till_switch = SCHEDULE_DELAY;
@@ -44,7 +45,15 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
       TracePrintf(1, "trap_handlers: Exec requested.\n");
       exec_trap_handler(frame);
       break;
+    case YALNIX_WAIT:
+      TracePrintf(1, "trap_handlers: Wait requested.\n");
+      wait_trap_handler(frame);
+      break;
   }
+
+}
+
+void wait_trap_handler(ExceptionStackFrame *frame){
 
 }
 
@@ -54,7 +63,10 @@ void exec_trap_handler(ExceptionStackFrame *frame){
 
   struct schedule_item *item = get_head();
 
-  LoadProgram(filename, argvec, frame, item->pcb->page_table);
+  int load_return_val = LoadProgram(filename, argvec, frame, item->pcb->page_table);
+  if(load_return_val == -1){
+    frame->regs[0] = ERROR;
+  }
 }
 
 void fork_trap_handler(ExceptionStackFrame *frame){
