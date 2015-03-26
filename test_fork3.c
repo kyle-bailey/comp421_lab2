@@ -6,7 +6,7 @@
 
 int
 main() {
-  printf("Test fork2 Process Initialized.\n");
+  printf("Test fork3 Process Initialized.\n");
 
   int should_be_copied = 5;
 

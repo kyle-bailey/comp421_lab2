@@ -10,6 +10,7 @@ void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
 void exit_handler(ExceptionStackFrame *frame);
 void fork_trap_handler(ExceptionStackFrame *frame);
+void exec_trap_handler(ExceptionStackFrame *frame);
 
 #define SCHEDULE_DELAY  2
 int time_till_switch = SCHEDULE_DELAY;
@@ -49,8 +50,8 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 }
 
 void exec_trap_handler(ExceptionStackFrame *frame){
-  char *filename = frame->regs[1];
-  char **argvec = frame->regs[2];
+  char *filename = (char *)frame->regs[1];
+  char **argvec = (char **)frame->regs[2];
 
   struct schedule_item *item = get_head();
 
