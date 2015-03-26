@@ -123,8 +123,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   //if we don't have enough physical memory to make the copy, return with parent saved context
   TracePrintf(3, "context_switch: num_user_pages: %d , num_free_physical_pages: %d\n", num_user_pages, num_free_physical_pages());
-  if (1) {
-  // if(num_pages_to_copy > num_free_physical_pages()){
+  if(num_pages_to_copy > num_free_physical_pages()){
     parent_pcb->out_of_memory = 1;
 
     return &parent_pcb->saved_context;
