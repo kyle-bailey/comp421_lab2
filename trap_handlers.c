@@ -1,5 +1,5 @@
 #include "trap_handlers.h"
-
+#include <stdio.h>
 #include "process_scheduling.h"
 #include "process_control_block.h"
 #include "memory_management.h"
@@ -96,7 +96,7 @@ void illegal_trap_handler (ExceptionStackFrame *frame) {
 
   int current_pid = get_current_pid();
 
-  TracePrintf(0, "trap_handlers: Terminating current process of pid %d due to TRAP_ILLEGAL of code %d\n", current_pid, code);
+  printf("trap_handlers: Terminating current process of pid %d due to TRAP_ILLEGAL of code %d\n", current_pid, code);
 
   exit_handler(frame);
 }
@@ -131,7 +131,7 @@ void math_trap_handler (ExceptionStackFrame *frame) {
 
   int current_pid = get_current_pid();
 
-  TracePrintf(0, "trap_handlers: Terminating current process of pid %d due to TRAP_MATH of code %d\n", current_pid, code);
+  printf("trap_handlers: Terminating current process of pid %d due to TRAP_MATH of code %d\n", current_pid, code);
 
   exit_handler(frame);
 }
