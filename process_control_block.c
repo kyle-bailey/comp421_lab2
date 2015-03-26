@@ -11,21 +11,23 @@ struct exit_status_node *pop_next_child_exit_status_node(struct process_control_
     return NULL;
   } else {
     pcb->exit_status_queue = head->next;
+    pcb->num_children--;
 
     return head;
   }
 
 }
 
-void add_child_exit_status(struct process_control_block *pcb, int exit_status) {
-  struct exit_status_node *current = pcb->exit_status_queue;
+void add_child_exit_status(struct process_control_block *parent_pcb, int exit_status, int child_pid) {
+  struct exit_status_node *current = parent_pcb->exit_status_queue;
 
   struct exit_status_node *new_exit_status_node = malloc(sizeof(struct exit_status_node));
   new_exit_status_node->exit_status = exit_status;
+  new_exit_status_node->pid = child_pid;
   new_exit_status_node->next = NULL;
 
   if (current == NULL) {
-    pcb->exit_status_queue = new_exit_status_node;
+    parent_pcb->exit_status_queue = new_exit_status_node;
   } else {
     while (current->next != NULL) {
       current = current->next;
@@ -58,6 +60,8 @@ create_unprepped_process(int pid, int parent_pid){
   new_pcb->parent_pid = parent_pid;
   new_pcb->exit_status_queue = NULL;
   new_pcb->out_of_memory = 0;
+  new_pcb->is_waiting = 0;
+  new_pcb->num_children = 0;
   add_pcb_to_schedule(new_pcb);
   return new_pcb;
 }

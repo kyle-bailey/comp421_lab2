@@ -55,7 +55,25 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 }
 
 void wait_trap_handler(ExceptionStackFrame *frame){
+  int *status+ptr = (int *)frame->regs[1];
 
+  struct schedule_item *item = get_head();
+  struct process_control_block *parent_pcb = item->pcb;
+
+  struct exit_status_node *esn = pop_next_child_exit_status_node(parent_pcb);
+  if(esn == NULL){
+    if(parent_pcb->num_children == 0){
+      frame->regs[0] = NULL;
+      return;
+    }
+    parent_pcb->is_waiting = 1;
+    reset_time_till_switch();
+    schedule_processes();
+    esn = pop_next_child_exit_status_node(parent_pcb);
+  }
+
+  status_ptr = esn->exit_status;
+  frame->regs[0] = esn->pid;
 }
 
 void exec_trap_handler(ExceptionStackFrame *frame){
@@ -97,6 +115,7 @@ void fork_trap_handler(ExceptionStackFrame *frame){
       frame->regs[0] = 0;
     } else {
       frame->regs[0] = child_pid;
+      parent_pcb->num_children++;
     }
   }
 
@@ -218,7 +237,8 @@ void exit_handler(ExceptionStackFrame *frame) {
     struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
     TracePrintf(3, "trap_handlers: parent: %d\n", parent_pcb->pid);
 
-    add_child_exit_status(parent_pcb, exit_status);
+    parent_pcb->is_waiting = 0;
+    add_child_exit_status(parent_pcb, exit_status, get_current_pid());
     TracePrintf(3, "trap_handlers: Finished adding child exit status\n");
   }
 

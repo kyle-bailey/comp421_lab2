@@ -6,6 +6,7 @@
 struct exit_status_node
 {
   int exit_status;
+  int pid;
   struct exit_status_node *next;
 };
 
@@ -20,11 +21,13 @@ struct process_control_block
   struct exit_status_node *exit_status_queue;
   int parent_pid;
   int out_of_memory;
+  int is_waiting;
+  int num_children;
 };
 
 struct exit_status_node *get_next_child_exit_status_node(struct process_control_block *pcb);
 
-void add_child_exit_status(struct process_control_block *pcb, int exit_status);
+void add_child_exit_status(struct process_control_block *parent_pcb, int exit_status, int child_pid);
 
 struct process_control_block * create_idle_process();
 struct process_control_block * create_new_process(int pid, int parent_pid);
