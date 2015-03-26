@@ -5,6 +5,7 @@
 
 SavedContext *
 context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
+  TracePrintf(3, "context_switch: Beginning context_switch_helper.\n");
   // struct process_control_block *pcb1 = (struct process_control_block *)p1;
   struct process_control_block *pcb2 = (struct process_control_block *)p2;
 
@@ -14,6 +15,8 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
   // Flush the TLB for region 0.
   WriteRegister(REG_TLB_FLUSH, (RCS421RegVal)TLB_FLUSH_0);
 
+  TracePrintf(3, "context_switch: pcb2->page_table: %p\n", pcb2->page_table);
+  TracePrintf(3, "context_switch: &pcb2->saved_context: %p\n", &pcb2->saved_context);
   return &pcb2->saved_context;
 }
 
@@ -113,6 +116,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
   TracePrintf(3, "context_switch: beginning region 0 copy.\n");
 
   //if we don't have enough physical memory to make the copy, return with parent saved context
+  TracePrintf(3, "context_switch: num_user_pages: %d , num_free_physical_pages: %d\n", num_user_pages, num_free_physical_pages());
   if(num_user_pages - MEM_INVALID_PAGES > num_free_physical_pages()){
     parent_pcb->out_of_memory = 1;
 

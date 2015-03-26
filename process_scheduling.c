@@ -47,6 +47,7 @@ move_head_to_tail() {
 
 int // 1 for success, 0 for failure
 move_next_process_to_head(int delay) {
+  TracePrintf(2, "process_scheduling: Beginning move_next_process_to_head.\n");
   struct schedule_item *current = head;
   struct schedule_item *previous = NULL;
 
@@ -76,6 +77,7 @@ move_next_process_to_head(int delay) {
  */
 void
 select_next_process(){
+  TracePrintf(2, "process_scheduling: Beginning select_next_process.\n");
   if (move_next_process_to_head(0)) {
     return;
   } else if (move_next_process_to_head(IDLE_DELAY)) {
@@ -130,7 +132,9 @@ schedule_processes_during_decapitate() {
 
   ContextSwitch(context_switch_helper, &old_head_pcb->saved_context, (void *)old_head_pcb, (void *)next_pcb);
 
+  TracePrintf(2, "process_scheduling: calling reser_time_till_switch.\n");
   reset_time_till_switch();
+  TracePrintf(2, "process_scheduling: End schedule_processes_during_decapitate.\n");
 }
 
 void
@@ -151,10 +155,13 @@ decapitate() {
 
   schedule_processes_during_decapitate();
 
+  TracePrintf(2, "linked_list: current->pcb->page_table: %p\n", current->pcb->page_table);
+  TracePrintf(2, "linked_list: current->pcb: %p\n", current->pcb);
+  TracePrintf(2, "linked_list: current: %p\n", current);
   free_page_table(current->pcb->page_table);
   free(current->pcb);
   free(current);
-
+  TracePrintf(2, "linked_list: Finished a decapitation.\n");
 }
 
 void
