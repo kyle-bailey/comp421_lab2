@@ -231,6 +231,19 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
 
   TracePrintf(3, "%p\n", child_page_table);
 
+  TracePrintf(3, "context_switch: VALID PTE'S:\n");
+  for (i = 0; i < VMEM_0_LIMIT/PAGESIZE; i++) {
+    if(child_page_table[i].valid == 1){
+      TracePrintf(3, "context_switch: %d, %d \n", i, child_page_table[i].valid);
+    }
+  }
+    
+  for (i = 0; i < VMEM_0_LIMIT/PAGESIZE; i++) {
+    if(child_page_table[i].valid == 1){
+      TracePrintf(3, "context_switch: %d, %d \n", i, parent_page_table[i].valid);
+    }
+  }
+
   WriteRegister(REG_PTR0, (RCS421RegVal)child_page_table);
   TracePrintf(3, "Breaking on flush?\n");
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
