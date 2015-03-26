@@ -14,3 +14,4 @@ int num_free_physical_pages();
 void free_physical_page();
 unsigned int acquire_free_physical_page();
 unsigned int acquire_top_physical_page();
+void * virt_addr_to_phys_addr(void * virt_addr);

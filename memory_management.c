@@ -156,3 +156,26 @@ acquire_top_physical_page() {
 
   return pfn;
 }
+
+void *
+virt_addr_to_phys_addr(void *virt_addr) {
+  void *virt_page_base = (void *)DOWN_TO_PAGE(virt_addr);
+  void *phys_page_base;
+  int vpn;
+  int pfn;
+
+  if (virt_page_base >= (void *)VMEM_1_BASE) {
+    vpn = ((long)virt_page_base - VMEM_1_BASE)/PAGESIZE;
+    pfn = kernel_page_table[vpn].pfn;
+  } else {
+    vpn = (long)virt_page_base/PAGESIZE;
+    struct schedule_item *current = get_head();
+    pfn = current->pcb->page_table[vpn].pfn;
+  }
+
+  phys_page_base = (void *) (long) (pfn * PAGESIZE);
+
+  long offset = (long) ((int)virt_addr & PAGEOFFSET);
+
+  return (void *)((long)phys_page_base + offset);
+}

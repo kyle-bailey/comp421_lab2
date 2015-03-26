@@ -10,7 +10,7 @@ context_switch_helper(SavedContext *ctxp, void *p1, void *p2){
   struct process_control_block *pcb2 = (struct process_control_block *)p2;
 
   // Change REG_PTR0 to the page table of process 2
-  WriteRegister(REG_PTR0, (RCS421RegVal)pcb2->page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)virt_addr_to_phys_addr(pcb2->page_table));
 
   // Flush the TLB for region 0.
   WriteRegister(REG_TLB_FLUSH, (RCS421RegVal)TLB_FLUSH_0);
@@ -76,7 +76,7 @@ idle_and_init_initialization(SavedContext *ctxp, void *p1, void *p2) {
     }
   }
 
-  WriteRegister(REG_PTR0, (RCS421RegVal)process_2_page_table);
+  WriteRegister(REG_PTR0, (RCS421RegVal)virt_addr_to_phys_addr(process_2_page_table));
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
   TracePrintf(1, "context_switch: idle_and_init_initialization completed.\n");
@@ -244,7 +244,9 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
     }
   }
 
-  WriteRegister(REG_PTR0, (RCS421RegVal)child_page_table);
+  // convert child_page_table's virtual address to a physical one!  
+
+  WriteRegister(REG_PTR0, (RCS421RegVal)virt_addr_to_phys_addr(child_page_table));
   TracePrintf(3, "Breaking on flush?\n");
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
