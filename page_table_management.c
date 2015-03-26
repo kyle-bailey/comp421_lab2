@@ -194,7 +194,7 @@ prep_page_table(struct pte *page_table){
       page_table[i].uprot = PROT_NONE;
     } else {
       page_table[i].valid = 0;
-      page_table[i].kprot = PROT_NONE;
+      page_table[i].kprot = PROT_READ | PROT_WRITE;
       page_table[i].uprot = PROT_READ | PROT_WRITE | PROT_EXEC;
     }
   }
