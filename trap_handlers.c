@@ -151,25 +151,38 @@ void illegal_trap_handler (ExceptionStackFrame *frame) {
 
 void memory_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_MEMORY interrupt handler...\n");
+  struct schedule_item *item = get_head();
+  struct process_control_block *pcb = item->pcb;
+  
 
   int code = frame->code;
+  void *addr = frame->addr;
+  void *user_stack_limit = pcb->user_stack_limit;
+  void *brk = pcb->brk;
+
+  if(DOWN_TO_PAGE(addr) < DOWN_TO_PAGE(user_stack_limit)){
+    if(UP_TO_PAGE(addr) > (UP_TO_PAGE(brk) + PAGESIZE)){
+      grow_user_stack(addr, pcb);
+      return;
+    }
+  }
 
   switch (code) {
     case TRAP_MEMORY_MAPERR:
-      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: No mapping at a virtual address\n");
+      printf("TRAP_MEMORY was due to: No mapping at a virtual address\n");
       break;
     case SEGV_ACCERR:
-      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Protection violation at a virtual address\n");
+      printf("TRAP_MEMORY was due to: Protection violation at a virtual address\n");
       break;
     case SI_KERNEL:
-      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Linux kernel sent SIGSEGV at virtual address\n");
+      printf("TRAP_MEMORY was due to: Linux kernel sent SIGSEGV at virtual address\n");
       break;
     case SI_USER:
-      TracePrintf(1, "trap_handlers: TRAP_MEMORY was due to: Received SIGSEGV from user\n");
+      printf("TRAP_MEMORY was due to: Received SIGSEGV from user\n");
       break;
   }
 
-  Halt();
+  exit_handler(frame, 1);
 }
 
 void math_trap_handler (ExceptionStackFrame *frame) {

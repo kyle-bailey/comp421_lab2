@@ -179,3 +179,17 @@ virt_addr_to_phys_addr(void *virt_addr) {
 
   return (void *)((long)phys_page_base + offset);
 }
+
+//This method assumes we are okay to grow the user stack, no seatbelts
+void
+grow_user_stack(void *addr, struct process_control_block *pcb){
+  int num_pages_required = (DOWN_TO_PAGE(addr) - DOWN_TO_PAGE(pcb->user_stack_limit))/PAGESIZE;
+
+  for(i = 0; i < num_pages_required; i++) {
+    unsigned int physical_page_number = acquire_free_physical_page();
+    user_page_table[(long)DOWN_TO_PAGE(pcb->user_stack_limit) - i - 1].valid = 1;
+    user_page_table[(long)DOWN_TO_PAGE(pcb->user_stack_limit) - i - 1].pfn = physical_page_number;
+  }
+
+  pcb->user_stack_limit = DOWN_TO_PAGE(addr);
+}
