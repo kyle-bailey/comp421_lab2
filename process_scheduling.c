@@ -53,7 +53,7 @@ move_next_process_to_head(int delay) {
 
   while(current != NULL) {
     struct process_control_block *pcb = current->pcb;
-    if(pcb->delay == delay && is_waiting == 0){
+    if(pcb->delay == delay && pcb->is_waiting == 0){
       if(previous == NULL){
         return 1;
       } else {

@@ -55,7 +55,7 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 }
 
 void wait_trap_handler(ExceptionStackFrame *frame){
-  int *status+ptr = (int *)frame->regs[1];
+  int *status_ptr = (int *)frame->regs[1];
 
   struct schedule_item *item = get_head();
   struct process_control_block *parent_pcb = item->pcb;
@@ -63,7 +63,7 @@ void wait_trap_handler(ExceptionStackFrame *frame){
   struct exit_status_node *esn = pop_next_child_exit_status_node(parent_pcb);
   if(esn == NULL){
     if(parent_pcb->num_children == 0){
-      frame->regs[0] = NULL;
+      frame->regs[0] = (long)NULL;
       return;
     }
     parent_pcb->is_waiting = 1;
@@ -72,7 +72,7 @@ void wait_trap_handler(ExceptionStackFrame *frame){
     esn = pop_next_child_exit_status_node(parent_pcb);
   }
 
-  status_ptr = esn->exit_status;
+  *status_ptr = esn->exit_status;
   frame->regs[0] = esn->pid;
 }
 
