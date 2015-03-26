@@ -26,6 +26,8 @@ void schedule_processes();
 
 void decapitate();
 
+void raw_remove_head_of_schedule();
+
 void add_pcb_to_schedule(struct process_control_block *pcb);
 
 void decrement_delays();

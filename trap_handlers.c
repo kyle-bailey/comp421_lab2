@@ -59,8 +59,10 @@ void fork_trap_handler(ExceptionStackFrame *frame){
   if (parent_pcb->out_of_memory) {
     // if this is REALLY true, then the pcb at head is child, but the page table & context are parent.
     TracePrintf(1, "trap_handlers: fork attempted, but there is not enough memory for REGION_1 copy.\n");
-    // decapitate the process at the head of the schedule (child)
-    decapitate();
+    struct schedule_item *current = get_head();
+    TracePrintf(3, "trap_handlers: before raw_remove_head_of_schedule, \"head\" is: %d\n", current->pcb->pid);
+    // Straight up remove the deformed spawn of satan at the front of the schedule.
+    raw_remove_head_of_schedule();
     frame->regs[0] = ERROR;
   } else {
     //If we are the parent, return the child's PID, if we are the child return 0
@@ -180,19 +182,20 @@ void delay_handler(ExceptionStackFrame *frame) {
 void exit_handler(ExceptionStackFrame *frame) {
   int exit_status = frame->regs[1];
 
+  struct schedule_item *current = get_head();
+
+  TracePrintf(3, "trap_handlers: Process of pid %d wants to exit\n", current->pcb->pid);
+
   if (!is_current_process_orphan()) {
-    struct schedule_item *current = get_head();
 
     struct process_control_block *parent_pcb = get_pcb_by_pid(current->pcb->parent_pid);
-    TracePrintf(3, "trap_handlers: parent_pcb: %p\n", parent_pcb);
+    TracePrintf(3, "trap_handlers: parent: %d\n", parent_pcb->pid);
 
     add_child_exit_status(parent_pcb, exit_status);
     TracePrintf(3, "trap_handlers: Finished adding child exit status\n");
   }
 
   decapitate();
-
-  schedule_processes();
 
   TracePrintf(3, "trap_handlers: %p\n", get_head()->next);
 }

@@ -130,6 +130,9 @@ schedule_processes_during_decapitate() {
   struct schedule_item *next_head = get_head();
   struct process_control_block *next_pcb = next_head->pcb;
 
+  TracePrintf(3, "process_scheduling: old head to be removed is %d\n", old_head_pcb->pid);
+  TracePrintf(3, "process_scheduling: next head is %d\n", next_pcb->pid);
+
   ContextSwitch(context_switch_helper, &old_head_pcb->saved_context, (void *)old_head_pcb, (void *)next_pcb);
 
   TracePrintf(2, "process_scheduling: calling reser_time_till_switch.\n");
@@ -158,10 +161,21 @@ decapitate() {
   TracePrintf(2, "process_scheduling: current->pcb->page_table: %p\n", current->pcb->page_table);
   TracePrintf(2, "process_scheduling: current->pcb: %p\n", current->pcb);
   TracePrintf(2, "process_scheduling: current: %p\n", current);
+
+  raw_remove_head_of_schedule();
+
+  TracePrintf(2, "process_scheduling: Finished a decapitation.\n");
+}
+
+void
+raw_remove_head_of_schedule() {
+  struct schedule_item *current = get_head();
+
+  head = current->next;
+
   free_page_table(current->pcb->page_table);
   free(current->pcb);
   free(current);
-  TracePrintf(2, "process_scheduling: Finished a decapitation.\n");
 }
 
 void
