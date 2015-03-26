@@ -250,6 +250,13 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
   TracePrintf(3, "Breaking on flush?\n");
   WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_0);
 
+  // init child pcb's saved_context, since it should be the exact same as parent's
+  memcpy(
+    &child_pcb->saved_context, // dest
+    &parent_pcb->saved_context, // src
+    sizeof(SavedContext) // num bytes
+  );
+
   TracePrintf(1, "context_switch: child_process_region_0_initialization() completed.\n");
 
   return &child_pcb->saved_context;  

@@ -175,7 +175,7 @@ virt_addr_to_phys_addr(void *virt_addr) {
 
   phys_page_base = (void *) (long) (pfn * PAGESIZE);
 
-  long offset = (long) ((int)virt_addr & PAGEOFFSET);
+  long offset = (long)virt_addr & PAGEOFFSET;
 
   return (void *)((long)phys_page_base + offset);
 }
