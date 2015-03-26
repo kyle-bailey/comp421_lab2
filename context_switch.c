@@ -111,7 +111,7 @@ child_process_region_0_initialization(SavedContext *ctxp, void *p1, void *p2) {
    * Find the location of the first invalid parent region 0 page, if there is one
    * This will be used as our temp location for the page by page copy
    */
-  for (i = MEM_INVALID_PAGES; i < USER_STACK_LIMIT/PAGESIZE; i++) {
+  for (i = MEM_INVALID_PAGES; i < (parent_pcb->user_stack_limit - 1)/PAGESIZE; i++) {
     if (parent_page_table[i].valid == 0) {
       first_invalid_region_0_page = i;
       TracePrintf(3, "context_switch: got first invalid page from region 0: %d\n", first_invalid_region_0_page);
