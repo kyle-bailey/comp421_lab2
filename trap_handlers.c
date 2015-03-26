@@ -44,12 +44,14 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
 }
 
 void fork_trap_handler(ExceptionStackFrame *frame){
+  struct schedule_item *item = get_head();
+  struct process_control_block *parent_pcb = item->pcb;
+
   //create child process
   int child_pid = get_next_pid();
   struct process_control_block *child_pcb = create_new_process(child_pid, get_current_pid());
 
-  struct schedule_item *item = get_head();
-  struct process_control_block *parent_pcb = item->pcb;
+  TracePrintf(3, "%p\n", child_pcb->page_table);
 
   //call specfic context switch function - copies region 0
   ContextSwitch(child_process_region_0_initialization, &parent_pcb->saved_context, (void *)parent_pcb, (void *)child_pcb);

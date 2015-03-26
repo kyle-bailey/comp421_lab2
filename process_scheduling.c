@@ -163,10 +163,6 @@ add_pcb_to_schedule(struct process_control_block *pcb) {
   new_item->pcb = pcb;
   new_item->next = head;
   head = new_item;
-  TracePrintf(2, "new_item->next : %p\n", new_item->next);
-  if (new_item->next != NULL) {
-    TracePrintf(2, "new_item->next->next : %p\n", new_item->next->next);
-  }
 }
 
 void
