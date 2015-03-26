@@ -39,8 +39,21 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
       TracePrintf(1, "trap_handlers: Fork requested.\n");
       fork_trap_handler(frame);
       break;
+    case YALNIX_EXEC:
+      TracePrintf(1, "trap_handlers: Exec requested.\n");
+      exec_trap_handler(frame);
+      break;
   }
 
+}
+
+void exec_trap_handler(ExceptionStackFrame *frame){
+  char *filename = frame->regs[1];
+  char **argvec = frame->regs[2];
+
+  struct schedule_item *item = get_head();
+
+  LoadProgram(filename, argvec, frame, item->pcb->page_table);
 }
 
 void fork_trap_handler(ExceptionStackFrame *frame){
