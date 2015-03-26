@@ -8,7 +8,7 @@
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
-void exit_handler(ExceptionStackFrame *frame);
+void exit_handler(ExceptionStackFrame *frame, int error);
 void fork_trap_handler(ExceptionStackFrame *frame);
 void wait_trap_handler(ExceptionStackFrame *frame);
 void exec_trap_handler(ExceptionStackFrame *frame);
@@ -36,7 +36,7 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
       break;
     case YALNIX_EXIT:
       TracePrintf(1, "trap_handlers: Exit requested.\n");
-      exit_handler(frame);
+      exit_handler(frame, 0);
       break;
     case YALNIX_FORK:
       TracePrintf(1, "trap_handlers: Fork requested.\n");
@@ -146,7 +146,7 @@ void illegal_trap_handler (ExceptionStackFrame *frame) {
 
   printf("trap_handlers: Terminating current process of pid %d due to TRAP_ILLEGAL of code %d\n", current_pid, code);
 
-  exit_handler(frame);
+  exit_handler(frame, 1);
 }
 
 void memory_trap_handler (ExceptionStackFrame *frame) {
@@ -181,7 +181,7 @@ void math_trap_handler (ExceptionStackFrame *frame) {
 
   printf("trap_handlers: Terminating current process of pid %d due to TRAP_MATH of code %d\n", current_pid, code);
 
-  exit_handler(frame);
+  exit_handler(frame, 1);
 }
 
 void tty_recieve_trap_handler (ExceptionStackFrame *frame) {
@@ -225,8 +225,13 @@ void delay_handler(ExceptionStackFrame *frame) {
   return;
 }
 
-void exit_handler(ExceptionStackFrame *frame) {
-  int exit_status = frame->regs[1];
+void exit_handler(ExceptionStackFrame *frame, int error) {
+  int exit_status;
+  if (error) {
+    exit_status = ERROR;
+  } else {
+    exit_status = frame->regs[1];
+  }
 
   struct schedule_item *current = get_head();
 
