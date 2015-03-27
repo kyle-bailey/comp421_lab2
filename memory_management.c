@@ -13,14 +13,16 @@ int virt_mem_initialized = 0;
 int SetKernelBrk(void *addr) {
   int i;
   if(virt_mem_initialized) {
-    int  num_pages_required = ((long)UP_TO_PAGE(addr) - (long)kernel_brk)/PAGESIZE;
+    int num_pages_required = ((long)UP_TO_PAGE(addr) - (long)kernel_brk)/PAGESIZE;
     if(num_free_physical_pages() < num_pages_required){
       return -1;
     } else {
       for(i = 0; i < num_pages_required; i++){
         unsigned int physical_page_number = acquire_free_physical_page();
-        kernel_page_table[(long)kernel_brk/PAGESIZE + i].valid = 1;
-        kernel_page_table[(long)kernel_brk/PAGESIZE + i].pfn = physical_page_number;
+        int vpn = ((long)kernel_brk - VMEM_1_BASE)/PAGESIZE + i;
+
+        kernel_page_table[vpn].valid = 1;
+        kernel_page_table[vpn].pfn = physical_page_number;
       }
     }
   } else {
