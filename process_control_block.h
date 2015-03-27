@@ -23,6 +23,9 @@ struct process_control_block
   int out_of_memory;
   int is_waiting;
   int num_children;
+  int is_waiting_to_read_from_terminal; // -1 if it is not waiting
+  int is_writing_to_terminal; // -1 if not writing
+  int is_waiting_to_write_to_terminal; // -1 if it is not waiting
 };
 
 struct exit_status_node *pop_next_child_exit_status_node(struct process_control_block *pcb);

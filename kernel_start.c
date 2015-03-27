@@ -8,6 +8,7 @@
 #include "context_switch.h"
 #include "process_control_block.h"
 #include "process_scheduling.h"
+#include "terminals.h"
 
 void **interrupt_vector_table;
 int is_init = 1;
@@ -115,5 +116,9 @@ void KernelStart(ExceptionStackFrame *frame, unsigned int pmem_size, void *orig_
     }
 
     TracePrintf(2, "kernel_start: Init process loaded.\n");
+
+    // do IO initialization.
+    init_charbuffers();
+    TracePrintf(2, "kernel_start: charbuffers initiatlized.\n");
   }
 }

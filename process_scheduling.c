@@ -53,7 +53,8 @@ move_next_process_to_head(int delay) {
 
   while(current != NULL) {
     struct process_control_block *pcb = current->pcb;
-    if(pcb->delay == delay && pcb->is_waiting == 0){
+    if(pcb->delay == delay && pcb->is_waiting == 0 && 
+        pcb->is_waiting_to_read_from_terminal == -1 && pcb->is_waiting_to_write_to_terminal == -1 && pcb->is_writing_to_terminal == -1){
       if(previous == NULL){
         return 1;
       } else {
@@ -236,6 +237,56 @@ get_pcb_by_pid(int pid) {
   while (current != NULL) {
     if (current->pcb->pid == pid) {
       return current->pcb;
+    }
+
+    current = current->next;
+  }
+
+  return NULL;
+}
+
+void
+wake_up_a_reader_for_terminal(int terminal) {
+  struct schedule_item *current = get_head();
+
+  while (current != NULL) {
+    struct process_control_block *pcb = current->pcb;
+    if (pcb->is_waiting_to_read_from_terminal == terminal) {
+      pcb->is_waiting_to_read_from_terminal = -1;
+      return;
+    }
+
+    current = current->next;
+  }
+
+  return;
+}
+
+void
+wake_up_a_writer_for_terminal(int terminal) {
+  struct schedule_item *current = get_head();
+
+  while (current != NULL) {
+    struct process_control_block *pcb = current->pcb;
+    if (pcb->is_waiting_to_write_to_terminal == terminal) {
+      pcb->is_waiting_to_write_to_terminal = -1;
+      return;
+    }
+    
+    current = current->next;
+  }
+
+  return;
+}
+
+struct process_control_block *
+get_pcb_of_process_writing_to_terminal(int terminal) {
+  struct schedule_item *current = get_head();
+
+  while (current != NULL) {
+    struct process_control_block *pcb = current->pcb;
+    if (pcb->is_writing_to_terminal == terminal) {
+      return pcb;
     }
 
     current = current->next;

@@ -35,3 +35,9 @@ void decrement_delays();
 int is_current_process_orphan();
 
 struct process_control_block *get_pcb_by_pid(int pid);
+
+void wake_up_a_reader_for_terminal(int terminal);
+
+void wake_up_a_writer_for_terminal(int terminal);
+
+struct process_control_block *get_pcb_of_process_writing_to_terminal(int terminal);

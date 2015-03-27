@@ -5,6 +5,7 @@
 #include "memory_management.h"
 #include "context_switch.h"
 #include "load_program.h"
+#include "terminals.h"
 
 void getpid_handler(ExceptionStackFrame *frame);
 void delay_handler(ExceptionStackFrame *frame);
@@ -12,6 +13,8 @@ void exit_handler(ExceptionStackFrame *frame, int error);
 void fork_trap_handler(ExceptionStackFrame *frame);
 void wait_trap_handler(ExceptionStackFrame *frame);
 void exec_trap_handler(ExceptionStackFrame *frame);
+void tty_read_handler(ExceptionStackFrame *frame);
+void tty_write_handler(ExceptionStackFrame *frame);
 
 #define SCHEDULE_DELAY  2
 int time_till_switch = SCHEDULE_DELAY;
@@ -49,6 +52,14 @@ void kernel_trap_handler(ExceptionStackFrame *frame) {
     case YALNIX_WAIT:
       TracePrintf(1, "trap_handlers: Wait requested.\n");
       wait_trap_handler(frame);
+      break;
+    case YALNIX_TTY_READ:
+      TracePrintf(1, "trap_handlers: Tty Read requested.\n");
+      tty_read_handler(frame);
+      break;
+    case YALNIX_TTY_WRITE:
+      TracePrintf(1, "trap_handlers: Tty Write requested.\n");
+      tty_write_handler(frame);
       break;
   }
 
@@ -200,12 +211,73 @@ void math_trap_handler (ExceptionStackFrame *frame) {
 
 void tty_recieve_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_TTY_RECEIVE interrupt handler...\n");
-  Halt();
+
+  int terminal = frame->code;  
+  char *receivedchars = malloc(sizeof(char) * TERMINAL_MAX_LINE);
+
+  int num_received_chars = TtyReceive(terminal, receivedchars, TERMINAL_MAX_LINE);
+
+  write_to_buffer_raw(terminal, receivedchars, num_received_chars);
+
+  if (new_line_in_buffer(terminal)) {
+    TracePrintf(3, "trap_handlers: there is a new line in buffer, so we are waking up a reader!\n");
+    wake_up_a_reader_for_terminal(terminal);
+  }
+
+  TracePrintf(1, "trap_handlers: Received %d chars from terminal %d.\n", num_received_chars, terminal);
 }
 
 void tty_transmit_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_TTY_TRANSMIT interrupt handler...\n");
-  Halt();
+
+  int terminal = frame->code;  
+
+  struct process_control_block *done_writing_pcb = get_pcb_of_process_writing_to_terminal(terminal);
+
+  // reset its status.
+  done_writing_pcb->is_writing_to_terminal = -1;
+
+  wake_up_a_writer_for_terminal(terminal);
+
+  TracePrintf(1, "trap_handlers\n");
+}
+
+void
+tty_read_handler(ExceptionStackFrame *frame) {
+  int terminal = frame->regs[1];
+  void *buf = (void *)frame->regs[2];
+  int len = frame->regs[3];
+
+  int num_read = read_from_buffer(terminal, buf, len);
+
+  if (num_read >= 0) {
+    frame->regs[0] = num_read;
+  } else {
+    frame->regs[0] = ERROR;
+  }
+}
+
+void
+tty_write_handler(ExceptionStackFrame *frame) {
+  int terminal = frame->regs[1];
+  void *buf = (void *)frame->regs[2];
+  int len = frame->regs[3];
+
+  // this call blocks the process if someone is already writing to terminal.
+  int num_written = write_to_buffer(terminal, buf, len);
+
+  TtyTransmit(terminal, buf, num_written);
+
+  // now that we are waiting for the io to finish, mark it as writing.
+  struct schedule_item *item = get_head();
+  struct process_control_block *current_pcb = item->pcb;
+  current_pcb->is_writing_to_terminal = terminal;
+
+  if (num_written >= 0) {
+    frame->regs[0] = num_written;
+  } else {
+    frame->regs[0] = ERROR;
+  }
 }
 
 void getpid_handler(ExceptionStackFrame *frame) {

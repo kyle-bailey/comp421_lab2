@@ -62,6 +62,9 @@ create_unprepped_process(int pid, int parent_pid){
   new_pcb->out_of_memory = 0;
   new_pcb->is_waiting = 0;
   new_pcb->num_children = 0;
+  new_pcb->is_waiting_to_read_from_terminal = -1;
+  new_pcb->is_writing_to_terminal = -1;
+  new_pcb->is_waiting_to_write_to_terminal = -1;
   add_pcb_to_schedule(new_pcb);
   return new_pcb;
 }
