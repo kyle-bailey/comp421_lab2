@@ -244,6 +244,10 @@ void tty_transmit_trap_handler (ExceptionStackFrame *frame) {
 
 void
 tty_read_handler(ExceptionStackFrame *frame) {
+  if(terminal < 0 || terminal > NUM_TERMINALS){
+    frame->regs[0] = ERROR;
+    return;
+  }
   int terminal = frame->regs[1];
   void *buf = (void *)frame->regs[2];
   int len = frame->regs[3];
@@ -259,6 +263,10 @@ tty_read_handler(ExceptionStackFrame *frame) {
 
 void
 tty_write_handler(ExceptionStackFrame *frame) {
+  if(terminal < 0 || terminal > NUM_TERMINALS){
+    frame->regs[0] = ERROR;
+    return;
+  }
   int terminal = frame->regs[1];
   void *buf = (void *)frame->regs[2];
   int len = frame->regs[3];
