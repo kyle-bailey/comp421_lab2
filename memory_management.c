@@ -65,8 +65,9 @@ brk_handler(ExceptionStackFrame *frame){
       TracePrintf(3, "memory_management: preparing to acquire %d physical pages\n", num_pages_required);
       for(i = 0; i < num_pages_required; i++) {
         unsigned int physical_page_number = acquire_free_physical_page();
-        user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].valid = 1;
-        user_page_table[(long)UP_TO_PAGE(brk)/PAGESIZE + i].pfn = physical_page_number;
+        int vpn = (long)UP_TO_PAGE(brk)/PAGESIZE + i;
+        user_page_table[vpn].valid = 1;
+        user_page_table[vpn].pfn = physical_page_number;
       }
     }
   } else if(UP_TO_PAGE(addr) < UP_TO_PAGE(brk)){
@@ -182,14 +183,22 @@ virt_addr_to_phys_addr(void *virt_addr) {
 
 //This method assumes we are okay to grow the user stack, no seatbelts
 void
-grow_user_stack(void *addr, struct process_control_block *pcb){
-  int num_pages_required = (DOWN_TO_PAGE(addr) - DOWN_TO_PAGE(pcb->user_stack_limit))/PAGESIZE;
+grow_user_stack(void *addr, void *uncasted_pcb){
+  struct process_control_block *pcb = (struct process_control_block *)uncasted_pcb;
+  TracePrintf(3, "memory_management: Entering grow_user_stack with process %d, for addr %p\n", pcb->pid, addr);
+  int i;
+
+  int num_pages_required = (DOWN_TO_PAGE(pcb->user_stack_limit) - DOWN_TO_PAGE(addr))/PAGESIZE;
+  TracePrintf(3, "memory_management: num_pages_required: %d\n", num_pages_required);
 
   for(i = 0; i < num_pages_required; i++) {
     unsigned int physical_page_number = acquire_free_physical_page();
-    user_page_table[(long)DOWN_TO_PAGE(pcb->user_stack_limit) - i - 1].valid = 1;
-    user_page_table[(long)DOWN_TO_PAGE(pcb->user_stack_limit) - i - 1].pfn = physical_page_number;
+    int vpn = (long)DOWN_TO_PAGE(pcb->user_stack_limit)/PAGESIZE - i - 1;
+    pcb->page_table[vpn].valid = 1;
+    pcb->page_table[vpn].pfn = physical_page_number;
   }
 
-  pcb->user_stack_limit = DOWN_TO_PAGE(addr);
+  pcb->user_stack_limit = (void *)DOWN_TO_PAGE(addr);
+
+  TracePrintf(3, "memory_management: finished with grow_user_stack\n");
 }

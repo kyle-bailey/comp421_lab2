@@ -153,12 +153,13 @@ void memory_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_MEMORY interrupt handler...\n");
   struct schedule_item *item = get_head();
   struct process_control_block *pcb = item->pcb;
-  
 
   int code = frame->code;
   void *addr = frame->addr;
   void *user_stack_limit = pcb->user_stack_limit;
   void *brk = pcb->brk;
+
+  TracePrintf(2, "trap_handlers: TRAP_MEMORY with addr: %p\n", addr);
 
   if(DOWN_TO_PAGE(addr) < DOWN_TO_PAGE(user_stack_limit)){
     if(UP_TO_PAGE(addr) > (UP_TO_PAGE(brk) + PAGESIZE)){

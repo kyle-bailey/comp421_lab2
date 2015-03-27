@@ -15,3 +15,4 @@ void free_physical_page();
 unsigned int acquire_free_physical_page();
 unsigned int acquire_top_physical_page();
 void * virt_addr_to_phys_addr(void * virt_addr);
+void grow_user_stack(void *addr, void *uncasted_pcb);
