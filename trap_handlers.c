@@ -227,19 +227,22 @@ void tty_recieve_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Received %d chars from terminal %d.\n", num_received_chars, terminal);
 }
 
-void tty_transmit_trap_handler (ExceptionStackFrame *frame) {
+void
+tty_transmit_trap_handler (ExceptionStackFrame *frame) {
   TracePrintf(1, "trap_handlers: Entering TRAP_TTY_TRANSMIT interrupt handler...\n");
 
   int terminal = frame->code;  
 
   struct process_control_block *done_writing_pcb = get_pcb_of_process_writing_to_terminal(terminal);
+  TracePrintf(3, "trap_handlers: process with pid %d found to have been writing to terminal %d.\n", done_writing_pcb->pid, terminal);
 
   // reset its status.
   done_writing_pcb->is_writing_to_terminal = -1;
+  TracePrintf(3, "trap_handlers: process with pid %d marked as done writing to terminal.\n", done_writing_pcb->pid);
 
   wake_up_a_writer_for_terminal(terminal);
 
-  TracePrintf(1, "trap_handlers\n");
+  TracePrintf(1, "trap_handlers: TRAP_TTY_TRANSMIT handler finished.\n");
 }
 
 void
@@ -263,7 +266,7 @@ tty_read_handler(ExceptionStackFrame *frame) {
 
 void
 tty_write_handler(ExceptionStackFrame *frame) {
-    int terminal = frame->regs[1];
+  int terminal = frame->regs[1];
   if(terminal < 0 || terminal > NUM_TERMINALS){
     frame->regs[0] = ERROR;
     return;
@@ -271,14 +274,22 @@ tty_write_handler(ExceptionStackFrame *frame) {
   void *buf = (void *)frame->regs[2];
   int len = frame->regs[3];
 
+  struct schedule_item *item = get_head();
+  struct process_control_block *current_pcb = item->pcb;
+
+  if (current_pcb->is_writing_to_terminal != -1) {
+    // idealing we'd want a linked list of terminals that it is writing to, but for now we'll
+    // just go under the assumption that a process can only write to one terminal at a time.
+    reset_time_till_switch();
+    schedule_processes();
+  }
+
   // this call blocks the process if someone is already writing to terminal.
   int num_written = write_to_buffer(terminal, buf, len);
 
   TtyTransmit(terminal, buf, num_written);
 
   // now that we are waiting for the io to finish, mark it as writing.
-  struct schedule_item *item = get_head();
-  struct process_control_block *current_pcb = item->pcb;
   current_pcb->is_writing_to_terminal = terminal;
 
   if (num_written >= 0) {

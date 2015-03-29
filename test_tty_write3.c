@@ -20,7 +20,7 @@ main() {
   int fork_return = Fork();
 
   if(fork_return == 0){
-    struct scheduling_item *item = get_head();
+    struct schedule_item *item = get_head();
     struct process_control_block *pcb = item->pcb;
     pcb->is_writing_to_terminal = 0;
     Delay(6);

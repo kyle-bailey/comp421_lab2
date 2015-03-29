@@ -11,10 +11,10 @@ main() {
   char *readbuffer = malloc(sizeof(char) * 10);
 
   int ret_val = TtyRead(0, readbuffer, 5);
-  printf("Read from terminal 2: %s with ret_val: %d\n", readbuffer, ret_val);
+  printf("Read from terminal 0: %s with ret_val: %d\n", readbuffer, ret_val);
 
   ret_val = TtyRead(1, readbuffer, 5);
-  printf("Read from terminal 2: %s with ret_val: %d\n", readbuffer, ret_val);
+  printf("Read from terminal 1: %s with ret_val: %d\n", readbuffer, ret_val);
 
   ret_val = TtyRead(2, readbuffer, 5);
   printf("Read from terminal 2: %s with ret_val: %d\n", readbuffer, ret_val);

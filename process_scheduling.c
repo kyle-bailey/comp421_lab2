@@ -281,9 +281,12 @@ wake_up_a_writer_for_terminal(int terminal) {
 
 struct process_control_block *
 get_pcb_of_process_writing_to_terminal(int terminal) {
+  TracePrintf(3, "process_scheduling: looking for process writing to terminal %d\n", terminal);  
   struct schedule_item *current = get_head();
 
   while (current != NULL) {
+    TracePrintf(3, "process_scheduling: current has pid of %d\n", current->pcb->pid);
+    TracePrintf(3, "process_scheduling: current is writing to terminal: %d\n", current->pcb->is_writing_to_terminal);
     struct process_control_block *pcb = current->pcb;
     if (pcb->is_writing_to_terminal == terminal) {
       return pcb;
