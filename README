@@ -1,0 +1,123 @@
+Members of team:
+Aaron Roe (acr2)
+Kyle Bailey (kcb5)
+
+Kernel Source Files
+
+context_switch
+  This file contains all the procedures used by the provided ContextSwitch procedure.
+  Procedures:
+    context_switch_helper
+      For normal context switching between processes.
+    idle_and_init_initialization
+      For the initialization of the idle and init processes. Specifically, this initializes idle's
+      SavedContext and gives init a copy of idle's kernel stack.
+    child_process_region_0_initialization
+      For initializing the child process in fork. Copies all valid region 0 pages from parent
+      process to child and context switches to child.
+
+kernel_start
+  This is where the entry KernelStart procedure resides. The process for starting the kernel is as
+  follows:
+    1. Initialize array of free physical pages.
+    2. Initialize interrupt vector table.
+    3. Init kernel and user page tables.
+    4. Create the idle process.
+    5. Enable virtual memory.
+    6. Create the init process.
+    7. Load the idle process.
+    8. Perform ContextSwitch with idle_and_init_initialization procedure.
+    9. Load init.
+    10. Init IO buffers.
+    11. Run init.
+
+load_program
+  Uses modified load program template with added parameters:
+    1. ExceptionStackFrame *frame
+      The frame that contains the current stack pointer and program counter.
+    2. struct pte *page_table_to_load
+      Pointer to the page table of the process we are loading.
+  
+memory_management
+  Contains procedures for dealing with memory.
+
+  Specifically, it contains:
+    1. The SetKernelBrk procedure
+    2. Handler for the Brk kernel call.
+    3. Procedure for growing user stack.
+    4. Helper procedures for dealing with free physical pages.
+  
+page_table_management
+  Contains procedures for managing page tables.
+
+  Specifically, it contains:
+    1. The linked list of free half physical pages to use when allocating memory for page tables.
+        In order to ensure that page tables were physically contiguous in memory, we took advantage
+        of the fact that a the size of a page table is PAGESIZE/2. These physical pages reside at
+        the top of REGION_1.
+    2. Contains helper procedures for creating, preparing, and freeing page tables.
+ 
+process_control_block
+  Contains the process control block (pcb) and helper procedures for creating and managing pcbs.
+
+  Specifically, it includes the definition of the pcb, which includes these members:
+    1. int pid
+      Process id. There are two reserved pids, 0 for init and 1 for idle.
+    2. struct pte *page_table
+      A pointer to the page table corresponding to the process.
+    3. SavedContext saved_context
+      The SavedContext of the process.
+    4. int delay
+      The number of clock ticks reminaing until this process is unblocked.
+    5. void *brk
+      The address of the current brk.
+    6. void *user_stack_limit
+      The address of the current bottom of the user stack.
+    7. struct exit_status_node *exit_status_queue
+      A queue of information about child processes that have exited. Specifically that includes the
+      exit status and pid of the child.
+    8. int parent_pid
+      The pid of the parent process. If this is an orphan process, parent_pid is -1.
+    9. int out_of_memory
+      This is specific to fork. It's a flag used to signify that there is not enough remaining
+      memory to fork.
+    10. int is_waiting
+      Used to signify that the process is blocked due to a Wait call.
+    11. int num_children
+      The number of children currently running.
+    12. int is_waiting_to_read_from_terminal
+      This signifies that the process is waiting to read from a terminal. The value
+      corresponds to the terminal number it is waiting to read from. If the process is not waiting
+      to read from a terminal, the value is -1.
+    13. int is_writing_to_terminal
+      This signifies that the process is currently writing to a terminal. The value corresponds
+      to the terminal number it is writing to. -1 if it is not writing.
+    14. int is_waiting_to_write_to_terminal
+      This signifies that the process is waiting to write to a terminal. The value corresponds
+      to the terminal number it is waiting to write to. -1 if it is not waiting to write.
+  
+process_scheduling
+  This contains procedures and structs for scheduling the running of processes.
+
+  Specifically, it contains:
+    1. A linked list whose nodes contain pcbs of all non-terminated processes.
+    2. Whenever we want to schedule a process, we traverse the linked list and choose the first
+        ready process. When selecting the next process to run, priority is given to any process
+        that is not idle. Times when we select a new process include but are not limited to:
+          - Delaying current process
+          - When a process has children and calls Wait but there are no exit statuses to be
+            collected. 
+          - Switching due to two clock ticks occuring while the current process is running.
+          - When a process wants to read or write, but needs to wait.
+          - When the current process is exiting.
+    3. Additional helper procedures for managing the scheduling of processes.
+  
+terminals
+  This contains all code related to terminal i/o.
+
+  Specifically it contains:
+    1. Procedures for reading from/writing to terminals.
+    2. Helper procedures to manage buffers.
+
+trap_handlers
+  This contains all code related to interrupt trap handlers.

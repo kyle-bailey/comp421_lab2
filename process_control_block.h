@@ -21,7 +21,7 @@ struct process_control_block
   struct exit_status_node *exit_status_queue;
   int parent_pid;
   int out_of_memory;
-  int is_waiting;
+  int is_waiting; // 1 if this process is blocked due to a Wait call. 0 otherwise.
   int num_children;
   int is_waiting_to_read_from_terminal; // -1 if it is not waiting
   int is_writing_to_terminal; // -1 if not writing
