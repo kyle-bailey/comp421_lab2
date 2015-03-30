@@ -295,5 +295,7 @@ get_pcb_of_process_writing_to_terminal(int terminal) {
     current = current->next;
   }
 
+  TracePrintf(3, "process_scheduling: did not find process writing to terminal %d\n", terminal);
+
   return NULL;
 }

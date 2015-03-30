@@ -27,8 +27,8 @@ main() {
   return_val = TtyWrite(3, buf, 5);
   printf("Wrote to terminal 3 and got return value: %d\n", return_val);
 
-  // return_val = TtyWrite(NUM_TERMINALS + 1, buf, 5);
-  // printf("Wrote to terminal NUM_TERMINALS + 1 and got return value: %d\n", return_val);
+  return_val = TtyWrite(NUM_TERMINALS + 1, buf, 5);
+  printf("Wrote to terminal NUM_TERMINALS + 1 and got return value: %d\n", return_val);
 
   return 0;
 }

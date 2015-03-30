@@ -234,11 +234,17 @@ tty_transmit_trap_handler (ExceptionStackFrame *frame) {
   int terminal = frame->code;  
 
   struct process_control_block *done_writing_pcb = get_pcb_of_process_writing_to_terminal(terminal);
-  TracePrintf(3, "trap_handlers: process with pid %d found to have been writing to terminal %d.\n", done_writing_pcb->pid, terminal);
 
-  // reset its status.
-  done_writing_pcb->is_writing_to_terminal = -1;
-  TracePrintf(3, "trap_handlers: process with pid %d marked as done writing to terminal.\n", done_writing_pcb->pid);
+  if (done_writing_pcb == NULL) {
+    TracePrintf(3, "trap_handlers: on tty_transmit, could not find the process writing to terminal %d.\n", terminal);
+  } else {
+    TracePrintf(3, "trap_handlers: process with pid %d found to have been writing to terminal %d.\n", done_writing_pcb->pid, terminal);
+
+    // reset its status.
+    done_writing_pcb->is_writing_to_terminal = -1;
+    TracePrintf(3, "trap_handlers: process with pid %d marked as done writing to terminal.\n", done_writing_pcb->pid);
+  }
+
 
   wake_up_a_writer_for_terminal(terminal);
 
