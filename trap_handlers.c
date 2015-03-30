@@ -283,13 +283,6 @@ tty_write_handler(ExceptionStackFrame *frame) {
   struct schedule_item *item = get_head();
   struct process_control_block *current_pcb = item->pcb;
 
-  if (current_pcb->is_writing_to_terminal != -1) {
-    // idealing we'd want a linked list of terminals that it is writing to, but for now we'll
-    // just go under the assumption that a process can only write to one terminal at a time.
-    reset_time_till_switch();
-    schedule_processes();
-  }
-
   // this call blocks the process if someone is already writing to terminal.
   int num_written = write_to_buffer(terminal, buf, len);
 
