@@ -121,3 +121,11 @@ terminals
 
 trap_handlers
   This contains all code related to interrupt trap handlers.
+
+
+Testing
+
+Our approach to testing was two-folded:
+  1. As we added small units of code, we wrote print statements to make sure that the kernel was
+      running as expected.
+  2. We wrote a suite of tests for kernel calls.
